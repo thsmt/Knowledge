@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cloud Docs | thsmt</title>
-  <meta name="description" content="AWS and infrastructure operation documents by thsmt.">
+  <title>Knowledge | thsmt</title>
+  <meta name="description" content="AWS and infrastructure operation knowledge by thsmt.">
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="./">
-      <img src="assets/hashimoto-icon-inverted.jpg" alt="">
-      <span>Cloud Docs</span>
+      <img src="assets/hashimoto-icon.jpg" alt="">
+      <span>Knowledge</span>
     </a>
     <nav class="nav" aria-label="Global navigation">
       <a href="./">Home</a>
-      <a href="tutorials/cloudformation.html">Tutorials</a>
+      <a href="tutorials/cloudformation.html">Guides</a>
       <a href="https://github.com/thsmt">Repositories</a>
       <a href="https://github.com/thsmt/cloud-docs">GitHub</a>
     </nav>
@@ -23,22 +23,23 @@
 
   <div class="layout">
     <aside class="sidebar" aria-label="Tutorial navigation">
-      <h2>Tutorials</h2>
+      <h2>Guides</h2>
       <a class="active" href="tutorials/cloudformation.html">CloudFormation</a>
       <a href="tutorials/aws-cli.html">AWS CLI</a>
       <a href="tutorials/terraform.html">Terraform</a>
       <a href="tutorials/awx-ansible.html">AWX / Ansible</a>
+      <a href="tutorials/notation.html">記法</a>
     </aside>
 
     <main>
       <div class="breadcrumb">
         <a href="./">Home</a>
         <span>&gt;</span>
-        <span>Cloud Docs</span>
+        <span>Knowledge</span>
       </div>
 
       <p class="meta">AWS / Infrastructure / IaC / Operations</p>
-      <h1>Cloud Docs</h1>
+      <h1>Knowledge</h1>
 
       <p class="lead">
         CloudFormation、AWS CLI、Terraform、AWX / Ansible など、クラウドエンジニアの実務で使う手順を横断的に整理するためのドキュメントサイトです。
@@ -50,10 +51,10 @@
 
       <div class="notice">
         <strong>運用方針</strong>
-        リポジトリは実装本体、Cloud Docs は横断手順集として分けます。READMEやdocsと重複させすぎず、変更作業、障害時の確認、ツール操作の手順を中心に整理します。
+        リポジトリは実装本体、Knowledge は横断手順集として分けます。READMEやdocsと重複させすぎず、変更作業、障害時の確認、ツール操作の手順を中心に整理します。
       </div>
 
-      <h2 id="tutorials">Tutorials</h2>
+      <h2 id="tutorials">Guides</h2>
       <div class="cards">
         <article class="card">
           <strong><a href="tutorials/cloudformation.html">CloudFormation 運用手順集</a></strong>
@@ -70,6 +71,10 @@
         <article class="card">
           <strong><a href="tutorials/awx-ansible.html">AWX / Ansible 手順</a></strong>
           <p>Inventory、Credential、Project、Job Template、Playbook実行ログの確認観点を整理します。</p>
+        </article>
+        <article class="card">
+          <strong><a href="tutorials/notation.html">記法メモ</a></strong>
+          <p>GitHub README/docsで使うMarkdown記法と、Pages側で使うHTML記法を整理します。</p>
         </article>
       </div>
 
@@ -95,7 +100,7 @@
             <td>構成固有の設計方針、手動作業、削除手順を掲載します。</td>
           </tr>
           <tr>
-            <td>Cloud Docs</td>
+            <td>Knowledge</td>
             <td>ツール操作、横断的な運用手順、チェックリストを掲載します。</td>
           </tr>
         </tbody>
@@ -104,7 +109,7 @@
 
     <aside class="toc" aria-label="Table of contents">
       <h2>目次</h2>
-      <a class="active" href="#tutorials">Tutorials</a>
+      <a class="active" href="#tutorials">Guides</a>
       <a href="#repository-policy">Repositoryとの使い分け</a>
     </aside>
   </div>
