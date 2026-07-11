@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RHEL9 手動構築手順 | Knowledge</title>
-  <meta name="description" content="RHEL9 operation guide for AWS EC2.">
+  <meta name="description" content="RHEL9 manual build guide for AWS EC2.">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -33,37 +33,766 @@
       <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>Guides</span></div>
       <p class="meta">Linux / RHEL9 / Manual Build</p>
       <h1>RHEL9 手動構築手順</h1>
-      <p class="lead">AWS EC2上のRHEL9を手動構築する際の初期パッケージ導入とlogrotate設定を整理します。実環境名、IPアドレス、顧客固有値は扱わず、手順だけを再利用できる形にまとめます。</p>
+      <p class="lead">AWS EC2上のRHEL9を手動構築する際の初期設定、SSH、cloud-init、swap、ミドルウェア、Apache、Postfix、logrotateを整理します。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています。</p>
 
       <div class="callout">
         <strong>前提</strong>
-        PDFの手動構築手順をもとに、公開できる範囲で一般化しています。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています。コピーしやすさを優先し、プロンプト記号の <code>#</code> はコードブロックに含めません。
+        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;FQDN&gt;</code>、<code>&lt;PRIVATE_IP&gt;</code> などは環境に合わせて置き換えます。
       </div>
 
-      <h2 id="precheck">作業前確認</h2>
+      <h2 id="step-01">1. 起動時の確認</h2>
+      <p>AWSコンソールでEC2を起動する場合、キーペアは <code>ED25519</code> で作成します。RSA鍵は組織ポリシーや鍵長の条件で拒否される場合があります。</p>
       <table>
-        <thead><tr><th>観点</th><th>確認内容</th></tr></thead>
+        <thead><tr><th>確認項目</th><th>内容</th></tr></thead>
         <tbody>
-          <tr><td>対象確認</td><td>アカウント、リージョン、インスタンスID、OSバージョン、ホスト名を確認します。</td></tr>
-          <tr><td>退避</td><td>AMI、EBS Snapshot、設定ファイルのバックアップ要否を確認します。</td></tr>
-          <tr><td>接続経路</td><td>Session Manager、踏み台、Security Group一時許可のどれを使うか確認します。</td></tr>
-          <tr><td>影響</td><td>サービス再起動、パッケージ更新、カーネル更新の有無を確認します。</td></tr>
+          <tr><td>キーペア</td><td><code>ED25519</code> を利用します。</td></tr>
+          <tr><td>接続方式</td><td>SSH、Session Manager、踏み台経由など、作業経路を事前に確認します。</td></tr>
+          <tr><td>バックアップ</td><td>設定変更前にAMI、EBS Snapshot、設定ファイル退避の要否を確認します。</td></tr>
         </tbody>
       </table>
 
-      <h2 id="package-install">基本パッケージのインストール</h2>
-      <p>タブ補完、疎通確認、ファイル取得、ネットワーク調査、端末操作で利用する基本パッケージをインストールします。</p>
+      <h2 id="step-02">2. SELinuxの設定変更</h2>
+      <p>RHEL9では <code>SELINUX=disabled</code> にすると起動や動作に影響する場合があるため、ログ出力のみの <code>permissive</code> に変更します。</p>
+      <p>設定ファイルを退避します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>yum install -y telnet lftp mlocate libyaml wget mtr tcpdump tmux bash-completion net-tools</code></pre>
+        <pre><code>cp -pi /etc/selinux/config /etc/selinux/config.org</code></pre>
+      </div>
+
+      <p>設定ファイルを編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/selinux/config</code></pre>
+      </div>
+
+      <p><code>SELINUX</code> を <code>permissive</code> に変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>SELINUX=permissive</code></pre>
+      </div>
+
+      <p>差分を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>diff -u /etc/selinux/config.org /etc/selinux/config</code></pre>
+      </div>
+
+      <p>再起動前に一時反映します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>setenforce permissive</code></pre>
+      </div>
+
+      <p>動作状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>getenforce</code></pre>
+      </div>
+
+      <p>SELinuxのモードは <a href="https://www.itmedia.co.jp/enterprise/articles/0704/02/news021.html">SELinuxのモード解説</a> も確認します。</p>
+
+      <h2 id="step-03">3. subscription-managerの無効化</h2>
+      <p>AWS上のRHELでは、環境によって <code>subscription-manager</code> の警告がパッケージ操作時に表示されるため、yumプラグインを無効化します。</p>
+      <p>設定ファイルを退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/yum/pluginconf.d/subscription-manager.conf /etc/yum/pluginconf.d/subscription-manager.conf.org</code></pre>
+      </div>
+
+      <p>設定ファイルを編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/yum/pluginconf.d/subscription-manager.conf</code></pre>
+      </div>
+
+      <p><code>enabled</code> を <code>1</code> から <code>0</code> に変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>[main]
+enabled=0</code></pre>
       </div>
 
       <div class="callout">
         <strong>補足</strong>
-        <code>bash-completion</code> 導入後、タブ補完がオプションまで補完されない場合があります。その場合は再ログイン、または必要に応じてOS再起動後に確認します。
+        有効なままだと <code>This system is not registered with an entitlement server.</code> のようなメッセージが表示され、パッケージ更新時の確認が煩雑になる場合があります。
       </div>
 
-      <h2 id="logrotate">logrotate設定</h2>
+      <h2 id="step-04">4. ログインプロファイル設定</h2>
+      <p>操作履歴に時刻を残し、調査時に作業順序を追いやすくするため、<code>/etc/profile</code> と新規ユーザー用の雛形を変更します。</p>
+      <p><code>/etc/profile</code> を退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/profile /etc/profile.org</code></pre>
+      </div>
+
+      <p><code>/etc/profile</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/profile</code></pre>
+      </div>
+
+      <p>既存内容をベースに、履歴件数、履歴時刻、umaskを設定します。</p>
+      <details class="example-details">
+        <summary>/etc/profile の設定例を展開する</summary>
+        <div class="code">
+          <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+          <pre><code># /etc/profile
+pathmunge () {
+    case ":${PATH}:" in
+        *:"$1":*)
+            ;;
+        *)
+            if [ "$2" = "after" ] ; then
+                PATH=$PATH:$1
+            else
+                PATH=$1:$PATH
+            fi
+    esac
+}
+
+if [ -x /usr/bin/id ]; then
+    if [ -z "$EUID" ]; then
+        EUID=`id -u`
+        UID=`id -ru`
+    fi
+    USER="`id -un`"
+    LOGNAME=$USER
+    MAIL="/var/spool/mail/$USER"
+fi
+
+if [ "$EUID" = "0" ]; then
+    pathmunge /sbin
+    pathmunge /usr/sbin
+    pathmunge /usr/local/sbin
+else
+    pathmunge /usr/local/sbin after
+    pathmunge /usr/sbin after
+    pathmunge /sbin after
+fi
+
+HOSTNAME=`/bin/hostname 2&gt;/dev/null`
+HISTSIZE=50000
+HISTFILESIZE=50000
+if [ "$HISTCONTROL" = "ignorespace" ] ; then
+    export HISTCONTROL=ignoreboth
+else
+    export HISTCONTROL=ignoredups
+fi
+export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTFILESIZE HISTCONTROL
+
+if [ $UID -gt 199 ] &amp;&amp; [ "`id -gn`" = "`id -un`" ]; then
+    umask 002
+else
+    umask 022
+fi
+
+for i in /etc/profile.d/*.sh ; do
+    if [ -r "$i" ]; then
+        if [ "${-#*i}" != "$-" ]; then
+            . "$i"
+        else
+            . "$i" &gt;/dev/null 2&gt;&amp;1
+        fi
+    fi
+done
+
+unset i
+unset -f pathmunge
+umask 002
+HISTTIMEFORMAT='%Y-%m-%d %T '</code></pre>
+        </div>
+      </details>
+
+      <p>新規ユーザー作成時の雛形を退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/skel/.bash_profile /etc/skel/.bash_profile.org</code></pre>
+      </div>
+
+      <p>新規ユーザー用の <code>.bash_profile</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/skel/.bash_profile</code></pre>
+      </div>
+
+      <p>以下の内容に変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code># .bash_profile
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+PATH=$PATH:$HOME/.local/bin:$HOME/bin
+export PATH
+HISTTIMEFORMAT='%Y-%m-%d %T '
+PS1="[\u@\h \W \t]\\$ "</code></pre>
+      </div>
+
+      <div class="callout">
+        <strong>注意</strong>
+        <code>/etc/skel/.bash_profile</code> は新規ユーザー作成時の雛形です。既に作成済みのユーザーには反映されないため、必要に応じて <code>/home</code> 配下の各ユーザーのファイルを個別に修正します。
+      </div>
+
+      <h2 id="step-05">5. ホスト名とhosts設定</h2>
+      <p>必要に応じてホスト名を変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>hostnamectl set-hostname &lt;HOSTNAME&gt;</code></pre>
+      </div>
+
+      <p>ホスト名を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>hostnamectl</code></pre>
+      </div>
+
+      <p><code>/etc/hosts</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/hosts</code></pre>
+      </div>
+
+      <p>プライベートIP、FQDN、ホスト名を追記します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>&lt;PRIVATE_IP&gt; &lt;FQDN&gt; &lt;HOSTNAME&gt;</code></pre>
+      </div>
+
+      <h2 id="step-06">6. タイムゾーン設定</h2>
+      <p>サーバーのタイムゾーンを日本時間に変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>timedatectl set-timezone Asia/Tokyo</code></pre>
+      </div>
+
+      <p>反映状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>timedatectl status</code></pre>
+      </div>
+
+      <h2 id="step-07">7. sshd_config修正</h2>
+      <p>SSHのrootログイン、タイムアウト、DNS逆引き、SFTPログ出力を設定します。</p>
+      <p>設定ファイルを退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/ssh/sshd_config /etc/ssh/sshd_config.org</code></pre>
+      </div>
+
+      <p>設定ファイルを編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/ssh/sshd_config</code></pre>
+      </div>
+
+      <p>以下の設定を反映します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>#PermitRootLogin prohibit-password
+PermitRootLogin forced-commands-only
+
+ClientAliveInterval 60
+
+UseDNS no
+
+#Subsystem      sftp    /usr/libexec/openssh/sftp-server
+Subsystem sftp /usr/libexec/openssh/sftp-server -f LOCAL3 -l VERBOSE</code></pre>
+      </div>
+
+      <p>sshdを再起動して反映します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl restart sshd.service</code></pre>
+      </div>
+
+      <p><code>PermitRootLogin prohibit-password</code> と <code>without-password</code> の扱いは <a href="https://qiita.com/ine1127/items/b50b9a8f831736cf14ea">PermitRootLoginの解説</a> も確認します。</p>
+
+      <h2 id="step-08">8. cloud-init設定変更</h2>
+      <p>cloud-initの既定ユーザー、root無効化、モジュール実行順序などを確認・調整します。</p>
+      <p>設定ファイルを退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/cloud/cloud.cfg /etc/cloud/cloud.cfg.org</code></pre>
+      </div>
+
+      <p>設定ファイルを編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/cloud/cloud.cfg</code></pre>
+      </div>
+
+      <details class="example-details">
+        <summary>/etc/cloud/cloud.cfg の設定例を展開する</summary>
+        <div class="code">
+          <div class="code-header"><span>yaml</span><button class="copy" type="button">Copy</button></div>
+          <pre><code>users:
+ - default
+disable_root: 1
+# ssh_pwauth:   0
+mount_default_fields: [~, ~, 'auto', 'defaults,nofail,x-systemd.requires=cloud-init.service', '0', '2']
+resize_rootfs_tmp: /dev
+ssh_deletekeys:   0
+ssh_genkeytypes:  ~
+syslog_fix_perms: ~
+disable_vmware_customization: false
+cloud_init_modules:
+ - disk_setup
+ - migrator
+ - bootcmd
+ - write-files
+ - growpart
+ - resizefs
+ - set_hostname
+ - update_hostname
+ - update_etc_hosts
+ - rsyslog
+ - users-groups
+ - ssh
+cloud_config_modules:
+ - mounts
+# - locale
+ - set-passwords
+ - rh_subscription
+ - yum-add-repo
+ - package-update-upgrade-install
+ - timezone
+ - puppet
+ - chef
+ - salt-minion
+ - mcollective
+ - disable-ec2-metadata
+ - runcmd
+cloud_final_modules:
+ - rightscale_userdata
+ - scripts-per-once
+ - scripts-per-boot
+ - scripts-per-instance
+ - scripts-user
+ - ssh-authkey-fingerprints
+ - keys-to-console
+ - phone-home
+ - final-message
+ - power-state-change
+system_info:
+  default_user:
+    name: cloud-user
+    lock_passwd: true
+    gecos: Cloud User
+    groups: [wheel, adm, systemd-journal]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+  distro: rhel
+  paths:
+    cloud_dir: /var/lib/cloud
+    templates_dir: /etc/cloud/templates
+  ssh_svcname: sshd
+# vim:syntax=yaml</code></pre>
+        </div>
+      </details>
+
+      <p>差分を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>diff -u /etc/cloud/cloud.cfg.org /etc/cloud/cloud.cfg</code></pre>
+      </div>
+
+      <h2 id="step-09">9. 追加ディスクのマウント</h2>
+      <p>EBSボリュームを追加する場合は、ファイルシステム作成、マウントポイント作成、<code>/etc/fstab</code> 追記、再起動後確認まで実施します。詳細は <a href="https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/ebs-using-volumes.html">Amazon EBSボリュームの使用</a> を確認します。</p>
+
+      <h2 id="step-10">10. swap領域作成</h2>
+      <p>現在のswap領域を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>free | grep Swap | awk '{print $2}'</code></pre>
+      </div>
+
+      <p>ルートファイルシステムの空き容量を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>df -h | grep /$ | awk '{print $4}'</code></pre>
+      </div>
+
+      <p>swapファイルを作成し、権限を変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dd if=/dev/zero of=/.swapfile bs=512M count=4
+chmod 600 /.swapfile</code></pre>
+      </div>
+
+      <p>swapを有効化します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mkswap /.swapfile
+swapon /.swapfile</code></pre>
+      </div>
+
+      <p>swap領域を再確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>free | grep Swap | awk '{print $2}'</code></pre>
+      </div>
+
+      <p><code>/etc/fstab</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/fstab</code></pre>
+      </div>
+
+      <p>永続化用の行を追記します。</p>
+      <div class="code">
+        <div class="code-header"><span>fstab</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>/.swapfile    swap    swap    defaults    0    0</code></pre>
+      </div>
+
+      <h2 id="step-11">11. ミドルウェアのインストール方針</h2>
+      <p>インストールしたいミドルウェアのバージョンがOS標準リポジトリから導入できない場合でも、まずApplication Streamsで選択できないか確認します。いきなり外部リポジトリを追加しない方針にします。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf module list &lt;MIDDLEWARE_NAME&gt;</code></pre>
+      </div>
+
+      <p>PostgreSQLの例です。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf module list postgresql
+dnf module enable postgresql:15
+dnf module list postgresql
+dnf module install postgresql/client</code></pre>
+      </div>
+
+      <p>パッケージライフサイクルは <a href="https://access.redhat.com/documentation/ja-jp/red_hat_enterprise_linux/9/html/considerations_in_adopting_rhel_9/ref_application-streams_considerations-in-adopting-rhel-9">Application Streams</a> を確認します。RHEL9で削除・変更されたモジュールは <a href="https://access.redhat.com/documentation/ja-jp/red_hat_enterprise_linux/9/html-single/considerations_in_adopting_rhel_9/index">RHEL9導入時の考慮事項</a> も確認します。</p>
+
+      <h2 id="step-12">12. Postfix設定</h2>
+      <p>Postfixをインストールします。SASL認証を利用する場合は <code>cyrus-sasl-plain</code> も導入します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>yum install postfix
+yum install cyrus-sasl-plain</code></pre>
+      </div>
+
+      <p>設定ファイルを退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/postfix/main.cf /etc/postfix/main.cf.org
+cp -pi /etc/postfix/master.cf /etc/postfix/master.cf.org</code></pre>
+      </div>
+
+      <p><code>main.cf</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/postfix/main.cf</code></pre>
+      </div>
+
+      <p>ホスト名とドメインを設定します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>myhostname = &lt;FQDN&gt;
+mydomain = &lt;DOMAIN&gt;</code></pre>
+      </div>
+
+      <p><code>master.cf</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/postfix/master.cf</code></pre>
+      </div>
+
+      <details class="example-details">
+        <summary>/etc/postfix/master.cf の設定例を展開する</summary>
+        <div class="code">
+          <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+          <pre><code>smtp      inet  n       -       n       -       -       smtpd
+#smtps     inet  n       -       n       -       -       smtpd
+#  -o smtpd_tls_wrappermode=yes
+#  -o smtpd_sasl_auth_enable=yes
+#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+#628      inet  n       -       n       -       -       qmqpd
+pickup    fifo  n       -       n       60      1       pickup
+cleanup   unix  n       -       n       -       0       cleanup
+qmgr      fifo  n       -       n       300     1       qmgr
+#qmgr     fifo  n       -       n       300     1       oqmgr
+tlsmgr    unix  -       -       n       1000?   1       tlsmgr
+rewrite   unix  -       -       n       -       -       trivial-rewrite
+bounce    unix  -       -       n       -       0       bounce
+defer     unix  -       -       n       -       0       bounce
+trace     unix  -       -       n       -       0       bounce
+verify    unix  -       -       n       -       1       verify
+flush     unix  n       -       n       1000?   0       flush
+proxymap  unix  -       -       n       -       -       proxymap
+smtp      unix  -       -       n       -       500     smtp
+relay     unix  -       -       n       -       -       smtp
+  -o smtp_fallback_relay=
+showq     unix  n       -       n       -       -       showq
+error     unix  -       -       n       -       -       error
+discard   unix  -       -       n       -       -       discard
+local     unix  -       n       n       -       -       local
+virtual   unix  -       n       n       -       -       virtual
+lmtp      unix  -       -       n       -       -       lmtp
+anvil     unix  -       -       n       -       1       anvil
+scache    unix  -       -       n       -       1       scache
+maildrop  unix  -       n       n       -       -       pipe
+  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
+old-cyrus unix  -       n       n       -       -       pipe
+  flags=R user=cyrus argv=/usr/lib/cyrus-imapd/deliver -e -m ${extension} ${user}
+cyrus     unix  -       n       n       -       -       pipe
+  user=cyrus argv=/usr/lib/cyrus-imapd/deliver -e -r ${sender} -m ${extension} ${user}
+uucp      unix  -       n       n       -       -       pipe
+  flags=Fqhu user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
+ifmail    unix  -       n       n       -       -       pipe
+  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
+bsmtp     unix  -       n       n       -       -       pipe
+  flags=Fq. user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient</code></pre>
+        </div>
+      </details>
+
+      <p>Postfixを再起動します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl stop postfix.service
+systemctl start postfix.service</code></pre>
+      </div>
+
+      <p>状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl status postfix.service</code></pre>
+      </div>
+
+      <p>自動起動状態を確認し、有効化します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl is-enabled postfix.service
+systemctl enable postfix.service
+systemctl is-enabled postfix.service</code></pre>
+      </div>
+
+      <p>RHEL9以降では <code>s-nail</code> に <code>mail</code>、<code>mailx</code> が含まれます。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>yum install s-nail</code></pre>
+      </div>
+
+      <p>メール送信を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mail -s "test mail" &lt;MAIL_ADDRESS&gt;</code></pre>
+      </div>
+
+      <h2 id="step-13">13. Apache設定</h2>
+      <p>Apache関連パッケージを導入します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>yum install httpd.x86_64 httpd-devel.x86_64 httpd-filesystem.noarch httpd-tools.x86_64
+yum install mod_ssl</code></pre>
+      </div>
+
+      <p>設定ファイルを退避します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.org</code></pre>
+      </div>
+
+      <p><code>httpd.conf</code> を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/httpd/conf/httpd.conf</code></pre>
+      </div>
+
+      <details class="example-details">
+        <summary>event MPMのhttpd.conf設定例を展開する</summary>
+        <div class="code">
+          <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+          <pre><code>ServerRoot /etc/httpd
+PidFile /var/run/httpd/httpd.pid
+Timeout 300
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 120
+User apache
+Group apache
+AccessFileName .htaccess
+&lt;Files ".ht*"&gt;
+  Require all denied
+&lt;/Files&gt;
+HostnameLookups Off
+Include conf.modules.d/*.conf
+&lt;IfModule mpm_event_module&gt;
+    StartServers             3
+    MinSpareThreads         75
+    MaxSpareThreads        250
+    ThreadsPerChild         25
+    MaxRequestWorkers      400
+    MaxConnectionsPerChild   0
+&lt;/IfModule&gt;
+&lt;IfModule dir_module&gt;
+  DirectoryIndex index.html index.html.var
+&lt;/IfModule&gt;
+&lt;IfModule log_config_module&gt;
+    LogFormat "%h %l %u %t \"%r\" %&gt;s %b" common
+    LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %&gt;s %b \"%{Referer}i\" \"%{User-Agent}i\" %D %P" combined
+    &lt;IfModule logio_module&gt;
+      LogFormat "%h %l %u %t \"%r\" %&gt;s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
+    &lt;/IfModule&gt;
+&lt;/IfModule&gt;
+SetEnvIf X-Forwarded-Proto "https" https
+CustomLog "/var/log/httpd/access_log" combined env=!https
+CustomLog "/var/log/httpd/ssl_access_log" combined env=https
+LogLevel warn
+ErrorLog "/var/log/httpd/error_log"
+&lt;IfModule mime_module&gt;
+  TypesConfig /etc/mime.types
+  AddType application/x-compress .Z
+  AddType application/x-gzip .gz .tgz
+  AddType text/html .shtml
+  AddOutputFilter INCLUDES .shtml
+&lt;/IfModule&gt;
+&lt;IfModule mime_magic_module&gt;
+  MIMEMagicFile conf/magic
+&lt;/IfModule&gt;
+&lt;IfModule mod_negotiation.c&gt;
+  LanguagePriority ja en ca cs da de el eo es et fr he hr it ko ltz nl nn no pl pt pt-BR ru sv tr zh-CN zh-TW
+  ForceLanguagePriority Prefer Fallback
+&lt;/IfModule&gt;
+AddDefaultCharset off
+ServerTokens Prod
+ServerSignature Off
+EnableSendfile on
+SSLProtocol All -SSLv2 -SSLv3
+IncludeOptional /etc/httpd/conf.d/*.conf</code></pre>
+        </div>
+      </details>
+
+      <div class="callout">
+        <strong>補足</strong>
+        prefork MPMはPHPとのモジュール連携などで注意点が多いため、原則としてevent MPMを前提にします。要件上preforkを使う場合は、PHP周辺設定も含めて別途検証します。
+      </div>
+
+      <p><code>/etc/httpd/conf.d/</code> 配下の不要ファイルを削除します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cd /etc/httpd/conf.d/
+rm -i autoindex.conf README ssl.conf welcome.conf</code></pre>
+      </div>
+
+      <p>文字コード設定ファイルを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/httpd/conf.d/charaset.conf</code></pre>
+      </div>
+
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>AddDefaultCharset Off</code></pre>
+      </div>
+
+      <p>セキュリティ設定ファイルを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/httpd/conf.d/security.conf</code></pre>
+      </div>
+
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>ServerTokens Prod
+ServerSignature Off
+TraceEnable Off
+FileETag none</code></pre>
+      </div>
+
+      <p>VirtualHost読込設定を作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/httpd/conf.d/vhosts.conf</code></pre>
+      </div>
+
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Listen *:80
+Include conf/vhosts/*.conf</code></pre>
+      </div>
+
+      <p>設定ファイルの権限を変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>chmod 644 vhosts.conf charaset.conf security.conf</code></pre>
+      </div>
+
+      <p>VirtualHost用ディレクトリを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mkdir /etc/httpd/conf/vhosts
+chmod 755 /etc/httpd/conf/vhosts</code></pre>
+      </div>
+
+      <p>VirtualHost設定を作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cd /etc/httpd/conf/vhosts
+vi &lt;FQDN&gt;.conf</code></pre>
+      </div>
+
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>&lt;VirtualHost *:80&gt;
+  ServerAdmin webadmin@&lt;FQDN&gt;
+  DocumentRoot /var/www/&lt;FQDN&gt;/httpd
+  ServerName &lt;FQDN&gt;
+  SetEnvIf X-Forwarded-Proto "https" https
+  ErrorLog /var/log/httpd/&lt;FQDN&gt;.error_log
+  CustomLog /var/log/httpd/&lt;FQDN&gt;.access_log combined env=!https
+  CustomLog /var/log/httpd/&lt;FQDN&gt;.ssl_access_log combined env=https
+  &lt;Directory /var/www/&lt;FQDN&gt;/httpd&gt;
+    Options -Indexes
+    AllowOverride all
+    Require all granted
+  &lt;/Directory&gt;
+&lt;/VirtualHost&gt;</code></pre>
+      </div>
+
+      <p>必要に応じてviでFQDN部分を一括置換します。</p>
+      <div class="code">
+        <div class="code-header"><span>vi</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>%s/FQDN/&lt;REPLACE_STRING&gt;/g</code></pre>
+      </div>
+
+      <p>VirtualHost設定の権限を変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>chmod 644 &lt;FQDN&gt;.conf</code></pre>
+      </div>
+
+      <p>ドキュメントルートを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mkdir -p /var/www/&lt;FQDN&gt;/httpd
+chown -R apache:www /var/www/&lt;FQDN&gt;</code></pre>
+      </div>
+
+      <p>構文とVirtualHost一覧を確認してから、httpdを再起動します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>httpd -t
+httpd -tS
+systemctl stop httpd.service
+systemctl start httpd.service</code></pre>
+      </div>
+
+      <p>自動起動を確認し、有効化します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl is-enabled httpd.service
+systemctl enable httpd.service
+systemctl is-enabled httpd.service</code></pre>
+      </div>
+
+      <h2 id="step-14">14. 基本コマンドのインストール</h2>
+      <p>運用時に利用頻度が高いコマンドを導入します。タブ補完が反映されない場合は再ログイン、必要に応じて再起動後に確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>yum install telnet lftp mlocate libyaml wget mtr tcpdump tmux bash-completion net-tools</code></pre>
+      </div>
+
+      <h2 id="step-15">15. logrotate設定</h2>
       <p>既存のlogrotate設定を退避します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -80,67 +809,48 @@
       <div class="code">
         <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
         <pre><code># see "man logrotate" for details
-# rotate log files weekly
 weekly
-
-# keep 4 weeks worth of backlogs
 rotate 54
-
-# create new (empty) log files after rotating old ones
 create
-
-# use date as a suffix of the rotated file
 dateext
-
-# uncomment this if you want your log files compressed
 compress
-
-# RPM packages drop log rotation information into this directory
 include /etc/logrotate.d
-
 # system-specific logs may be also be configured here.</code></pre>
       </div>
 
       <div class="callout">
-        <strong>確認観点</strong>
-        上記のコメントは標準設定由来の文言を含みます。<code>rotate 54</code> は保持世代数を54にする設定のため、実環境でコメントと設定値の整合性を重視する場合はコメントもあわせて修正します。
-      </div>
-
-      <h2 id="middleware-logrotate">ミドルウェア別logrotate設定</h2>
-      <p>ミドルウェアに合わせて、<code>/etc/logrotate.d/</code> 配下の設定ファイルを適宜変更します。</p>
-      <div class="code">
-        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>ls -l /etc/logrotate.d/</code></pre>
-      </div>
-
-      <p>対象ミドルウェアのlogrotate設定を編集します。</p>
-      <div class="code">
-        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>vi /etc/logrotate.d/&lt;SERVICE_NAME&gt;</code></pre>
-      </div>
-
-      <div class="callout">
         <strong>注意</strong>
-        <code>/etc/logrotate.d/</code> 配下にバックアップファイルを置くと、バックアップファイル内の記述もlogrotateの対象として読み込まれる可能性があります。退避ファイルは別ディレクトリに置くか、logrotateが読み込まない名前・場所で管理します。
+        <code>/etc/logrotate.d/</code> 配下にバックアップファイルを置くと、バックアップファイル内の記述もlogrotateの対象として読み込まれる可能性があります。退避ファイルは別ディレクトリ、またはlogrotateが読み込まない名前・場所で管理します。
       </div>
 
-      <h2 id="post-check">作業後確認</h2>
+      <h2 id="step-16">16. 作業後確認</h2>
       <p>logrotateのdry runで、構文と対象ファイルを確認します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>logrotate -d /etc/logrotate.conf</code></pre>
       </div>
 
-      <p>タブ補完やシェル設定の反映に問題がある場合は、再ログインまたは再起動後に確認します。</p>
+      <p>サービス再起動を伴う設定は、ステータス確認、ログ確認、再ログイン、必要に応じてOS再起動後の確認まで実施します。</p>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
       <h2>目次</h2>
-      <a class="active" href="#precheck">作業前確認</a>
-      <a href="#package-install">基本パッケージ</a>
-      <a href="#logrotate">logrotate</a>
-      <a href="#middleware-logrotate">ミドルウェア別設定</a>
-      <a href="#post-check">作業後確認</a>
+      <a class="active" href="#step-01">1. 起動時</a>
+      <a href="#step-02">2. SELinux</a>
+      <a href="#step-03">3. subscription-manager</a>
+      <a href="#step-04">4. profile</a>
+      <a href="#step-05">5. hostname</a>
+      <a href="#step-06">6. timezone</a>
+      <a href="#step-07">7. sshd</a>
+      <a href="#step-08">8. cloud-init</a>
+      <a href="#step-09">9. EBS</a>
+      <a href="#step-10">10. swap</a>
+      <a href="#step-11">11. middleware</a>
+      <a href="#step-12">12. Postfix</a>
+      <a href="#step-13">13. Apache</a>
+      <a href="#step-14">14. commands</a>
+      <a href="#step-15">15. logrotate</a>
+      <a href="#step-16">16. 確認</a>
     </aside>
   </div>
 
