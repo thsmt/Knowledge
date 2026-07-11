@@ -35,6 +35,11 @@
       <h1>Zabbix 運用手順</h1>
       <p class="lead">Zabbixの通知先変更、監視設定追加、Agent導入時の確認観点を整理します。画面手順は環境差分が出やすいため、作業前後の比較観点を中心にまとめます。</p>
 
+      <div class="callout">
+        <strong>前提</strong>
+        RHEL9へZabbix Agent 2を導入する例です。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています。Zabbix 6.0系を利用する場合は、先に <a href="https://www.zabbix.com/download">Zabbix公式ダウンロード</a> に掲載されている公式リポジトリを追加します。
+      </div>
+
       <h2 id="scope">対象作業</h2>
       <table>
         <thead><tr><th>作業</th><th>確認観点</th></tr></thead>
@@ -46,12 +51,84 @@
         </tbody>
       </table>
 
-      <h2 id="agent">Zabbix Agent確認</h2>
+      <h2 id="agent-install">Zabbix Agent 2インストール</h2>
+      <p>Zabbix 6.0のRHEL9向け公式リポジトリを追加します。<code>dnf install</code> だけでは通常Zabbix Agent 2を導入できないため、先に <code>zabbix-release</code> パッケージを導入します。</p>
       <div class="code">
-        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>zabbix_agentd -V
-sudo systemctl status zabbix-agent
-sudo grep -E '^(Server|ServerActive|Hostname)=' /etc/zabbix/zabbix_agentd.conf</code></pre>
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>rpm -Uvh https://repo.zabbix.com/zabbix/6.0/rhel/9/x86_64/zabbix-release-6.0-5.el9.noarch.rpm</code></pre>
+      </div>
+
+      <p>dnfのキャッシュを削除し、追加したリポジトリ情報を読み直します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf clean all</code></pre>
+      </div>
+
+      <p>Zabbix Agent 2をインストールします。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf install -y zabbix-agent2</code></pre>
+      </div>
+
+      <h2 id="agent-config">Zabbix Agent 2設定</h2>
+      <p>Agent設定ファイルを編集します。環境ごとにZabbix ServerのIPアドレスまたはFQDN、監視対象ホスト名を置き換えます。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;ZABBIX_SERVER_IP&gt;</code></td><td>Zabbix ServerまたはProxyのIPアドレス</td></tr>
+          <tr><td><code>&lt;ZABBIX_SERVER_FQDN&gt;</code></td><td>Zabbix ServerまたはProxyのFQDN。IPで指定する場合は不要</td></tr>
+          <tr><td><code>&lt;HOSTNAME&gt;</code></td><td>Zabbixに登録するHost名。管理画面側のHost名と一致させます。</td></tr>
+        </tbody>
+      </table>
+
+      <p>設定ファイルを編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/zabbix/zabbix_agent2.conf</code></pre>
+      </div>
+
+      <p>主な設定例です。パッシブチェックでは <code>Server</code>、アクティブチェックでは <code>ServerActive</code> を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Server=&lt;ZABBIX_SERVER_IP&gt;
+ServerActive=&lt;ZABBIX_SERVER_IP&gt;
+Hostname=&lt;HOSTNAME&gt;</code></pre>
+      </div>
+
+      <p>設定値を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>grep -E '^(Server|ServerActive|Hostname)=' /etc/zabbix/zabbix_agent2.conf</code></pre>
+      </div>
+
+      <h2 id="agent-check">Zabbix Agent 2確認</h2>
+      <p>Zabbix Agent 2のバージョンを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>zabbix_agent2 -V</code></pre>
+      </div>
+
+      <p>Zabbix Agent 2を自動起動に設定し、起動します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl enable --now zabbix-agent2</code></pre>
+      </div>
+
+      <p>サービス状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl status zabbix-agent2</code></pre>
+      </div>
+
+      <p>パッシブチェックを利用する場合は、Agentが10050/tcpで待ち受けていることを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>ss -lntp | grep 10050</code></pre>
+      </div>
+
+      <div class="callout">
+        <strong>通信要件</strong>
+        パッシブチェックではZabbix ServerからAgentの10050/tcpへ到達できる必要があります。アクティブチェックではAgentからZabbix Serverへ接続します。Security Group、OS Firewall、ネットワークACL、経路をあわせて確認します。
       </div>
 
       <h2 id="media">通知先変更</h2>
@@ -81,7 +158,9 @@ sudo grep -E '^(Server|ServerActive|Hostname)=' /etc/zabbix/zabbix_agentd.conf</
     <aside class="toc" aria-label="Table of contents">
       <h2>目次</h2>
       <a class="active" href="#scope">対象作業</a>
-      <a href="#agent">Zabbix Agent</a>
+      <a href="#agent-install">Agent 2インストール</a>
+      <a href="#agent-config">Agent 2設定</a>
+      <a href="#agent-check">Agent 2確認</a>
       <a href="#media">通知先変更</a>
       <a href="#monitoring">監視設定追加</a>
       <a href="#evidence">エビデンス</a>

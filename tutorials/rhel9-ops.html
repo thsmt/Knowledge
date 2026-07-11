@@ -37,7 +37,7 @@
 
       <div class="callout">
         <strong>方針</strong>
-        手動手順はAnsible化する前の確認用として扱います。最終的には、パッケージ導入、設定ファイル変更、サービス再起動、ログ確認をPlaybookへ移行できる粒度で整理します。
+        手動手順はAnsible化する前の確認用として扱います。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています。コピーしやすさを優先し、プロンプト記号の <code>#</code> はコードブロックに含めません。
       </div>
 
       <h2 id="precheck">作業前確認</h2>
@@ -52,55 +52,135 @@
       </table>
 
       <h2 id="baseline">基本パッケージと確認コマンド</h2>
+      <p>OSバージョンを確認します。</p>
       <div class="code">
-        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>cat /etc/redhat-release
-hostnamectl
-ip addr
-df -h
-free -m
-sudo dnf check-update
-sudo dnf install -y telnet lftp mlocate wget mtr tcpdump tmux bash-completion net-tools</code></pre>
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cat /etc/redhat-release</code></pre>
+      </div>
+
+      <p>ホスト名とOS情報を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>hostnamectl</code></pre>
+      </div>
+
+      <p>ネットワークインターフェイスとIPアドレスを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>ip addr</code></pre>
+      </div>
+
+      <p>ディスク容量とメモリ使用状況を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>df -h
+free -m</code></pre>
+      </div>
+
+      <p>更新可能なパッケージを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf check-update</code></pre>
+      </div>
+
+      <p>運用確認で利用する基本パッケージをインストールします。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf install -y telnet lftp mlocate wget mtr tcpdump tmux bash-completion net-tools</code></pre>
       </div>
 
       <h2 id="logrotate">logrotate設定</h2>
       <p>ログ保持期間や圧縮有無は環境ごとに差が出ます。変更前に既存設定を退避し、変更後に構文とローテーション対象を確認します。</p>
+      <p>既存のlogrotate設定を日付付きで退避します。</p>
       <div class="code">
-        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>sudo cp -pi /etc/logrotate.conf /etc/logrotate.conf.$(date +%Y%m%d)
-sudo vi /etc/logrotate.conf
-sudo logrotate -d /etc/logrotate.conf</code></pre>
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/logrotate.conf /etc/logrotate.conf.$(date +%Y%m%d)</code></pre>
+      </div>
+
+      <p>logrotate設定を編集します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>vi /etc/logrotate.conf</code></pre>
+      </div>
+
+      <p>dry runでlogrotateの実行内容を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>logrotate -d /etc/logrotate.conf</code></pre>
       </div>
 
       <h2 id="ssm">SSM Agent確認</h2>
       <p>Session ManagerやPatch Managerを使う場合は、SSM Agent、IAM Role、VPC Endpointまたはインターネット経路を確認します。</p>
+      <p>SSM Agentの状態を確認します。</p>
       <div class="code">
-        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>systemctl status amazon-ssm-agent
-sudo systemctl enable amazon-ssm-agent
-sudo systemctl restart amazon-ssm-agent</code></pre>
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl status amazon-ssm-agent</code></pre>
+      </div>
+
+      <p>SSM Agentを自動起動に設定し、再起動します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl enable amazon-ssm-agent
+systemctl restart amazon-ssm-agent</code></pre>
       </div>
 
       <h2 id="cloudwatch-agent">CloudWatch Agent更新</h2>
       <p>Agent更新では、更新前バージョン、設定ファイル、更新後のサービス状態、CloudWatch Logsへの到達を確認します。</p>
+      <p>CloudWatch Agentのインストール済みバージョンを確認します。</p>
       <div class="code">
-        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>rpm -qa | grep amazon-cloudwatch-agent
-sudo dnf update -y amazon-cloudwatch-agent
-sudo systemctl status amazon-cloudwatch-agent</code></pre>
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>rpm -qa | grep amazon-cloudwatch-agent</code></pre>
+      </div>
+
+      <p>CloudWatch Agentを更新します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf update -y amazon-cloudwatch-agent</code></pre>
+      </div>
+
+      <p>更新後のサービス状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl status amazon-cloudwatch-agent</code></pre>
       </div>
 
       <h2 id="apache">Apache更新・設定変更</h2>
       <p>Apacheの脆弱性対応や設定変更では、更新前後のRPM、構文確認、プロセス確認、ステータス確認を残します。</p>
+      <p>Apacheのインストール済みパッケージを確認します。</p>
       <div class="code">
-        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>rpm -qa | grep httpd
-sudo apachectl configtest
-sudo systemctl status httpd
-sudo dnf update -y httpd
-sudo apachectl configtest
-sudo systemctl restart httpd
-sudo systemctl status httpd</code></pre>
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>rpm -qa | grep httpd</code></pre>
+      </div>
+
+      <p>変更前にApache設定の構文を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>apachectl configtest</code></pre>
+      </div>
+
+      <p>変更前のApacheサービス状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl status httpd</code></pre>
+      </div>
+
+      <p>Apacheを更新します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>dnf update -y httpd</code></pre>
+      </div>
+
+      <p>更新後に設定構文を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>apachectl configtest</code></pre>
+      </div>
+
+      <p>Apacheを再起動し、サービス状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl restart httpd
+systemctl status httpd</code></pre>
       </div>
 
       <h2 id="evidence">作業前後エビデンス</h2>

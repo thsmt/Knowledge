@@ -78,39 +78,72 @@ aws --version</code></pre>
       </div>
 
       <h2 id="identity">認証情報の確認</h2>
+      <p>現在の認証情報が、想定しているAWSアカウントとIAMユーザー/ロールを向いているか確認します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws sts get-caller-identity</code></pre>
       </div>
 
       <h2 id="profile">プロファイルの使い分け</h2>
+      <p>作業用のプロファイルを作成します。複数アカウントを扱う場合は、以降のコマンドで <code>--profile &lt;PROFILE&gt;</code> を明示します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws configure --profile dev
-aws sts get-caller-identity --profile dev</code></pre>
+        <pre><code>aws configure --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>作成したプロファイルで認証先を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sts get-caller-identity --profile &lt;PROFILE&gt;</code></pre>
       </div>
 
       <h2 id="region">リージョン確認</h2>
       <p>作業前に対象リージョンを明示します。東京リージョンで作業する場合は <code>ap-northeast-1</code> を指定します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws configure set region ap-northeast-1 --profile dev</code></pre>
+        <pre><code>aws configure set region ap-northeast-1 --profile &lt;PROFILE&gt;</code></pre>
       </div>
 
       <h2 id="logs">CloudWatch Logs確認</h2>
+      <p>ロググループ名を確認します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws logs describe-log-groups --profile dev
-aws logs tail /aws/lambda/example-function --follow --profile dev</code></pre>
+        <pre><code>aws logs describe-log-groups --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>対象ロググループのログを追跡します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws logs tail &lt;LOG_GROUP_NAME&gt; --follow --profile &lt;PROFILE&gt;</code></pre>
       </div>
 
       <h2 id="iam">IAMユーザー・グループ操作</h2>
       <p>原則として人のログイン用途はIAM Identity Centerを優先します。IAMユーザーを作成する場合は、用途、権限、利用期限、アクセスキーの有無を事前に確認します。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;USER_NAME&gt;</code></td><td>作成または確認するIAMユーザー名</td></tr>
+          <tr><td><code>&lt;GROUP_NAME&gt;</code></td><td>ユーザーを所属させるIAMグループ名</td></tr>
+          <tr><td><code>&lt;PROFILE&gt;</code></td><td>AWS CLIの作業用プロファイル名</td></tr>
+        </tbody>
+      </table>
+
+      <p>IAMユーザーを作成します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws iam create-user --user-name &lt;USER_NAME&gt; --profile dev
-aws iam add-user-to-group --user-name &lt;USER_NAME&gt; --group-name &lt;GROUP_NAME&gt; --profile dev
-aws iam list-groups-for-user --user-name &lt;USER_NAME&gt; --profile dev</code></pre>
+        <pre><code>aws iam create-user --user-name &lt;USER_NAME&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>作成したIAMユーザーを既存グループに追加します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam add-user-to-group --user-name &lt;USER_NAME&gt; --group-name &lt;GROUP_NAME&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>ユーザーの所属グループを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam list-groups-for-user --user-name &lt;USER_NAME&gt; --profile &lt;PROFILE&gt;</code></pre>
       </div>
 
       <div class="callout">
@@ -120,38 +153,77 @@ aws iam list-groups-for-user --user-name &lt;USER_NAME&gt; --profile dev</code><
 
       <h2 id="security-group">Security Group ルール追加・削除</h2>
       <p>Security Group変更は影響範囲が広いため、対象SG、方向、プロトコル、ポート、送信元/宛先、説明欄を事前に確定します。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;SECURITY_GROUP_ID&gt;</code></td><td>変更対象のSecurity Group ID</td></tr>
+          <tr><td><code>&lt;CIDR&gt;</code></td><td>許可または削除する送信元CIDR。例: <code>203.0.113.10/32</code></td></tr>
+          <tr><td><code>&lt;PROFILE&gt;</code></td><td>AWS CLIの作業用プロファイル名</td></tr>
+        </tbody>
+      </table>
+
+      <p>作業前に、対象Security Groupの現在のルールを確認します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws ec2 describe-security-groups --group-ids &lt;SECURITY_GROUP_ID&gt; --profile dev
+        <pre><code>aws ec2 describe-security-groups --group-ids &lt;SECURITY_GROUP_ID&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
 
-aws ec2 authorize-security-group-ingress `
-  --group-id &lt;SECURITY_GROUP_ID&gt; `
-  --ip-permissions IpProtocol=tcp,FromPort=&lt;PORT&gt;,ToPort=&lt;PORT&gt;,IpRanges='[{CidrIp=&lt;CIDR&gt;,Description="&lt;DESCRIPTION&gt;"}]' `
-  --profile dev
+      <p>HTTPの80/tcpだけを許可する例です。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 authorize-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --protocol tcp --port 80 --cidr &lt;CIDR&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
 
-aws ec2 revoke-security-group-ingress `
-  --group-id &lt;SECURITY_GROUP_ID&gt; `
-  --protocol tcp `
-  --port &lt;PORT&gt; `
-  --cidr &lt;CIDR&gt; `
-  --profile dev</code></pre>
+      <p>全プロトコル・全ポートを許可する例です。検証や一時作業以外では原則として避け、作業後に必ず削除します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 authorize-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --protocol all --cidr &lt;CIDR&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>80/tcpの許可ルールを削除する例です。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 revoke-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --protocol tcp --port 80 --cidr &lt;CIDR&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>全プロトコル・全ポートの許可ルールを削除する例です。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 revoke-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --protocol all --cidr &lt;CIDR&gt; --profile &lt;PROFILE&gt;</code></pre>
       </div>
 
       <h2 id="sns">SNS Topic・Subscription作成</h2>
       <p>通知先を作成する場合は、Topic、Subscription、確認メールの承認、通知テストまでを一連の手順として扱います。</p>
+      <p>SNS Topicを作成します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws sns create-topic --name &lt;TOPIC_NAME&gt; --profile dev
-aws sns subscribe --topic-arn &lt;TOPIC_ARN&gt; --protocol email --notification-endpoint &lt;MAIL_ADDRESS&gt; --profile dev
-aws sns publish --topic-arn &lt;TOPIC_ARN&gt; --message "notification test" --profile dev</code></pre>
+        <pre><code>aws sns create-topic --name &lt;TOPIC_NAME&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>メール通知先をSubscriptionとして登録します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns subscribe --topic-arn &lt;TOPIC_ARN&gt; --protocol email --notification-endpoint &lt;MAIL_ADDRESS&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>通知テストを実行します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns publish --topic-arn &lt;TOPIC_ARN&gt; --message "notification test" --profile &lt;PROFILE&gt;</code></pre>
       </div>
 
       <h2 id="route53">Route 53 レコード確認</h2>
       <p>DNS変更はTTL、現在値、変更後の値、切り戻し値を事前に控えます。TXT/SPFレコードでは引用符、空白、includeの重複に注意します。</p>
+      <p>Hosted Zone内のレコード一覧を確認します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>aws route53 list-resource-record-sets --hosted-zone-id &lt;HOSTED_ZONE_ID&gt; --profile dev
-Resolve-DnsName -Name &lt;RECORD_NAME&gt; -Type TXT</code></pre>
+        <pre><code>aws route53 list-resource-record-sets --hosted-zone-id &lt;HOSTED_ZONE_ID&gt; --profile &lt;PROFILE&gt;</code></pre>
+      </div>
+
+      <p>端末側からTXTレコードを名前解決して確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Resolve-DnsName -Name &lt;RECORD_NAME&gt; -Type TXT</code></pre>
       </div>
     </main>
 
