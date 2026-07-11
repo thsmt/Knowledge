@@ -35,25 +35,26 @@
       <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>Guides</span></div>
       <p class="meta">Monitoring / Zabbix / Operations</p>
       <h1>Zabbix 運用手順</h1>
-      <p class="lead">Zabbixの通知先変更、監視設定追加、Agent導入時の確認観点を整理します。画面手順は環境差分が出やすいため、作業前後の比較観点を中心にまとめます。</p>
+      <p class="lead">Zabbix 6.0を想定し、Linux / RHEL9とWindows ServerのZabbix Agent 2導入、ホストグループ作成、メンテナンス設定、ホスト登録、最新データ確認を整理します。</p>
 
       <div class="callout">
         <strong>前提</strong>
-        RHEL9へZabbix Agent 2を導入する例です。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています。Zabbix 6.0系を利用する場合は、先に <a href="https://www.zabbix.com/download">Zabbix公式ダウンロード</a> に掲載されている公式リポジトリを追加します。
+        実環境のZabbix URL、顧客名、案件名、固定IPアドレスは扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;ZABBIX_SERVER_OR_PROXY&gt;</code>、<code>&lt;PROJECT_NAME&gt;</code> などは環境に合わせて置き換えます。
       </div>
 
-      <h2 id="scope">対象作業</h2>
+      <h2 id="scope">1. 対象作業</h2>
       <table>
         <thead><tr><th>作業</th><th>確認観点</th></tr></thead>
         <tbody>
-          <tr><td>通知先変更</td><td>ユーザー、メディア、送信先、通知テスト、作業前後差分を確認します。</td></tr>
-          <tr><td>監視設定追加</td><td>Host、Template、Item、Trigger、Action、通知先の関連を確認します。</td></tr>
-          <tr><td>Agent導入</td><td>Agentのバージョン、設定ファイル、Server/ServerActive、ListenPort、疎通を確認します。</td></tr>
-          <tr><td>監視削除</td><td>削除対象、通知停止、依存テンプレート、復旧手順を確認します。</td></tr>
+          <tr><td>Agent導入</td><td>Zabbix Agent 2のバージョン、Server / ServerActive、ListenPort、PSK設定、サービス状態を確認します。</td></tr>
+          <tr><td>ホストグループ作成</td><td>運用単位、案件単位、環境単位で識別できる命名にします。</td></tr>
+          <tr><td>メンテナンス設定</td><td>構築中または作業中の不要通知を抑止するため、対象ホストグループと期間を設定します。</td></tr>
+          <tr><td>ホスト登録</td><td>Host名、Template、Interface、PSK、Port、所属グループを確認します。</td></tr>
+          <tr><td>最新データ確認</td><td>Agent Ping、CPU、Diskなどの取得時刻と値が更新されていることを確認します。</td></tr>
         </tbody>
       </table>
 
-      <h2 id="agent-install">Zabbix Agent 2インストール</h2>
+      <h2 id="agent-install-rhel">2. Zabbix Agent 2インストール（RHEL9）</h2>
       <p>Zabbix 6.0のRHEL9向け公式リポジトリを追加します。<code>dnf install</code> だけでは通常Zabbix Agent 2を導入できないため、先に <code>zabbix-release</code> パッケージを導入します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -72,13 +73,13 @@
         <pre><code>dnf install -y zabbix-agent2</code></pre>
       </div>
 
-      <h2 id="agent-config">Zabbix Agent 2設定</h2>
-      <p>Agent設定ファイルを編集します。環境ごとにZabbix ServerのIPアドレスまたはFQDN、監視対象ホスト名を置き換えます。</p>
+      <h2 id="agent-config-rhel">3. Zabbix Agent 2設定（RHEL9）</h2>
+      <p>Agent設定ファイルを編集します。環境ごとにZabbix ServerまたはProxyのIPアドレス、監視対象ホスト名を置き換えます。</p>
       <table>
         <thead><tr><th>値</th><th>説明</th></tr></thead>
         <tbody>
-          <tr><td><code>&lt;ZABBIX_SERVER_IP&gt;</code></td><td>Zabbix ServerまたはProxyのIPアドレス</td></tr>
-          <tr><td><code>&lt;ZABBIX_SERVER_FQDN&gt;</code></td><td>Zabbix ServerまたはProxyのFQDN。IPで指定する場合は不要</td></tr>
+          <tr><td><code>&lt;ZABBIX_SERVER_IP&gt;</code></td><td>Zabbix ServerまたはProxyのIPアドレス。</td></tr>
+          <tr><td><code>&lt;ZABBIX_SERVER_FQDN&gt;</code></td><td>Zabbix ServerまたはProxyのFQDN。IPで指定する場合は不要です。</td></tr>
           <tr><td><code>&lt;HOSTNAME&gt;</code></td><td>Zabbixに登録するHost名。管理画面側のHost名と一致させます。</td></tr>
         </tbody>
       </table>
@@ -103,7 +104,7 @@ Hostname=&lt;HOSTNAME&gt;</code></pre>
         <pre><code>grep -E '^(Server|ServerActive|Hostname)=' /etc/zabbix/zabbix_agent2.conf</code></pre>
       </div>
 
-      <h2 id="agent-check">Zabbix Agent 2確認</h2>
+      <h2 id="agent-check-rhel">4. Zabbix Agent 2確認（RHEL9）</h2>
       <p>Zabbix Agent 2のバージョンを確認します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -130,10 +131,99 @@ Hostname=&lt;HOSTNAME&gt;</code></pre>
 
       <div class="callout">
         <strong>通信要件</strong>
-        パッシブチェックではZabbix ServerからAgentの10050/tcpへ到達できる必要があります。アクティブチェックではAgentからZabbix Serverへ接続します。Security Group、OS Firewall、ネットワークACL、経路をあわせて確認します。
+        パッシブチェックではZabbix ServerからAgentの10050/tcpへ到達できる必要があります。アクティブチェックではAgentからZabbix Serverへ接続します。Security Group、OS Firewall、Network ACL、経路をあわせて確認します。
       </div>
 
-      <h2 id="media">通知先変更</h2>
+      <h2 id="agent-install-windows">5. Windows向けZabbix Agent 2インストール</h2>
+      <p>Windows ServerへZabbix Agent 2を導入する場合は、Zabbix公式ダウンロードページからWindows向けMSIを取得し、ウィザードでServer、Host名、PSKを設定します。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;ZABBIX_SERVER_OR_PROXY&gt;</code></td><td>Zabbix ServerまたはProxyのIPアドレス、またはFQDN。複数ある場合はカンマ区切りで指定します。</td></tr>
+          <tr><td><code>&lt;HOSTNAME&gt;</code></td><td>Zabbixに登録するHost名。Windowsのホスト名と運用上の管理名を合わせます。</td></tr>
+          <tr><td><code>&lt;ZABBIX_PSK_IDENTITY&gt;</code></td><td>PSK identity。例: <code>&lt;HOSTNAME&gt;</code></td></tr>
+          <tr><td><code>&lt;ZABBIX_PSK_VALUE&gt;</code></td><td>PSK値。安全な場所で生成し、認証情報管理ルールに従って保管します。</td></tr>
+        </tbody>
+      </table>
+
+      <ol>
+        <li><a href="https://www.zabbix.com/download_agents">Zabbix公式のAgentダウンロードページ</a>を開きます。</li>
+        <li>OS Distributionに <code>Windows</code>、OS Versionに対象Windowsバージョン、Hardwareに <code>amd64</code> を選択します。</li>
+        <li>Zabbix Versionに <code>6.0 LTS</code>、Encryptionに <code>OpenSSL</code>、Packagingに <code>MSI</code> を選択します。</li>
+        <li>表示された6.0系の最新MSIをダウンロードし、対象サーバーで実行します。</li>
+        <li>Host nameに <code>&lt;HOSTNAME&gt;</code> を入力します。</li>
+        <li>Zabbix server IP / DNS、Server or Proxy for active checksに <code>&lt;ZABBIX_SERVER_OR_PROXY&gt;</code> を入力します。</li>
+        <li>Agent listen portは <code>10050</code> を指定します。</li>
+        <li>PSKを利用する場合はEnable PSKを有効化し、PSK identityとPSK valueを入力します。</li>
+        <li>インストール後、<code>services.msc</code> を開き、<code>Zabbix Agent 2</code> のスタートアップ種類が自動、サービス状態が実行中であることを確認します。</li>
+      </ol>
+
+      <p>PSK値を作成する例です。作業端末にOpenSSLがある場合に実行します。</p>
+      <div class="code">
+        <div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>openssl rand -hex 64</code></pre>
+      </div>
+
+      <h2 id="host-group">6. ホストグループ作成</h2>
+      <p>Zabbix管理画面で、監視対象をまとめるホストグループを作成します。</p>
+      <ol>
+        <li>Zabbix管理画面にサインインします。</li>
+        <li>「設定」から「ホストグループ」を開きます。</li>
+        <li>「ホストグループを作成」を選択します。</li>
+        <li>グループ名に、環境や案件を識別できる名称を入力します。</li>
+        <li>作成後、ホストグループ一覧に表示されることを確認します。</li>
+      </ol>
+
+      <table>
+        <thead><tr><th>命名例</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;CUSTOMER_CODE&gt;.&lt;PROJECT_CODE&gt;_&lt;CUSTOMER_NAME&gt;_&lt;PROJECT_NAME&gt;</code></td><td>顧客、案件、環境をまとめて識別する場合。</td></tr>
+          <tr><td><code>&lt;PROJECT_NAME&gt;-&lt;ENV&gt;</code></td><td>小規模な検証環境や学習環境で簡潔に識別する場合。</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="maintenance">7. メンテナンス設定</h2>
+      <p>構築中や運用開始前に不要な通知が出ないよう、対象ホストグループにメンテナンス期間を設定します。</p>
+      <ol>
+        <li>「設定」から「メンテナンス」を開きます。</li>
+        <li>「メンテナンス期間の作成」を選択します。</li>
+        <li>名前に作業内容、日付、作業者がわかる名称を入力します。</li>
+        <li>開始日時と終了日時を設定します。</li>
+        <li>対象に、作成したホストグループを指定します。</li>
+        <li>保存後、メンテナンス一覧に表示されることを確認します。</li>
+      </ol>
+
+      <table>
+        <thead><tr><th>命名例</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;PROJECT_NAME&gt;_運用開始前のため静観_yyyymmdd(&lt;OPERATOR&gt;)</code></td><td>運用開始前の構築期間を静観する場合。</td></tr>
+          <tr><td><code>&lt;PROJECT_NAME&gt;_計画作業_yyyymmdd(&lt;OPERATOR&gt;)</code></td><td>計画作業中の通知抑止として使う場合。</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="host-registration">8. ホスト登録</h2>
+      <p>Agent導入後、Zabbix管理画面で監視対象ホストを登録します。</p>
+      <ol>
+        <li>「設定」から「ホスト」を開きます。</li>
+        <li>「ホストの作成」を選択します。</li>
+        <li>Host nameに <code>&lt;HOSTNAME&gt;</code> を入力します。</li>
+        <li>Templatesに対象OSや監視方式に合うテンプレートを追加します。例: <code>基本監視 Linux/Windows (Activeエージェント2)</code></li>
+        <li>Groupsに作成済みのホストグループを追加します。</li>
+        <li>InterfacesでAgentを追加し、IP addressに対象サーバーのプライベートIP、Portに <code>10050</code> を指定します。</li>
+        <li>PSKを利用する場合は、暗号化設定でPSK identityとPSK valueを設定します。</li>
+        <li>保存後、ホスト一覧でStatusが有効になっていることを確認します。</li>
+      </ol>
+
+      <h2 id="latest-data">9. 最新データ確認</h2>
+      <p>ホスト登録後、最新データが取得されるまで1から5分程度待ってから確認します。</p>
+      <ol>
+        <li>「監視データ」から「最新データ」を開きます。</li>
+        <li>Hostに <code>&lt;HOSTNAME&gt;</code> を指定してフィルタします。</li>
+        <li>Agent Ping、CPU使用率、Disk使用量などのアイテムが表示されることを確認します。</li>
+        <li>Latest checkの時刻が更新され、値が取得されていることを確認します。</li>
+      </ol>
+
+      <h2 id="media">10. 通知先変更</h2>
       <p>通知先変更では、対象ユーザー、メディア種別、送信先、通知時間帯、有効/無効を作業前後で比較します。</p>
       <ol>
         <li>Zabbix管理画面にサインインします。</li>
@@ -143,29 +233,30 @@ Hostname=&lt;HOSTNAME&gt;</code></pre>
         <li>更新後の設定と通知テスト結果を確認します。</li>
       </ol>
 
-      <h2 id="monitoring">監視設定追加</h2>
-      <p>監視設定を追加する場合は、Host、Template、Item、Trigger、Actionを分けて確認します。作業後は最新データ、障害イベント、通知履歴を確認します。</p>
-
-      <h2 id="evidence">エビデンス取得</h2>
+      <h2 id="evidence">11. エビデンス取得</h2>
       <table>
         <thead><tr><th>タイミング</th><th>取得対象</th></tr></thead>
         <tbody>
-          <tr><td>作業前</td><td>対象Host、Template、Item、Trigger、Action、通知先</td></tr>
-          <tr><td>作業後</td><td>変更後の設定、最新データ、通知テスト、イベント履歴</td></tr>
-          <tr><td>切り戻し時</td><td>変更前設定への復旧、通知停止または復旧確認</td></tr>
+          <tr><td>作業前</td><td>対象Host、Template、Item、Trigger、Action、通知先、メンテナンス設定。</td></tr>
+          <tr><td>作業後</td><td>変更後の設定、最新データ、通知テスト、イベント履歴。</td></tr>
+          <tr><td>切り戻し時</td><td>変更前設定への復旧、通知停止または復旧確認。</td></tr>
         </tbody>
       </table>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
       <h2>目次</h2>
-      <a class="active" href="#scope">対象作業</a>
-      <a href="#agent-install">Agent 2インストール</a>
-      <a href="#agent-config">Agent 2設定</a>
-      <a href="#agent-check">Agent 2確認</a>
-      <a href="#media">通知先変更</a>
-      <a href="#monitoring">監視設定追加</a>
-      <a href="#evidence">エビデンス</a>
+      <a class="active" href="#scope">1. 対象作業</a>
+      <a href="#agent-install-rhel">2. Agent導入（RHEL9）</a>
+      <a href="#agent-config-rhel">3. Agent設定（RHEL9）</a>
+      <a href="#agent-check-rhel">4. Agent確認（RHEL9）</a>
+      <a href="#agent-install-windows">5. Agent導入（Windows）</a>
+      <a href="#host-group">6. ホストグループ</a>
+      <a href="#maintenance">7. メンテナンス</a>
+      <a href="#host-registration">8. ホスト登録</a>
+      <a href="#latest-data">9. 最新データ確認</a>
+      <a href="#media">10. 通知先変更</a>
+      <a href="#evidence">11. エビデンス</a>
     </aside>
   </div>
 
