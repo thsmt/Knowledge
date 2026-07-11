@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zabbix 運用手順 | Knowledge</title>
+  <meta name="description" content="Zabbix operation guide.">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../"><img src="../assets/icon.jpg" alt=""><span>Knowledge</span></a>
+    <nav class="nav" aria-label="Global navigation">
+      <a href="../">Home</a>
+      <a href="cloudformation.html">Guides</a>
+      <a href="https://github.com/thsmt">Repositories</a>
+      <a href="https://github.com/thsmt/Knowledge">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Tutorial navigation">
+      <h2>Guides</h2>
+      <a href="cloudformation.html">CloudFormation</a>
+      <a href="aws-cli.html">AWS CLI</a>
+      <a href="terraform.html">Terraform</a>
+      <a href="rhel9-ops.html">RHEL9 Operations</a>
+      <a class="active" href="zabbix-ops.html">Zabbix</a>
+      <a href="awx-ansible.html">AWX / Ansible</a>
+    </aside>
+
+    <main>
+      <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>Guides</span></div>
+      <p class="meta">Monitoring / Zabbix / Operations</p>
+      <h1>Zabbix 運用手順</h1>
+      <p class="lead">Zabbixの通知先変更、監視設定追加、Agent導入時の確認観点を整理します。画面手順は環境差分が出やすいため、作業前後の比較観点を中心にまとめます。</p>
+
+      <h2 id="scope">対象作業</h2>
+      <table>
+        <thead><tr><th>作業</th><th>確認観点</th></tr></thead>
+        <tbody>
+          <tr><td>通知先変更</td><td>ユーザー、メディア、送信先、通知テスト、作業前後差分を確認します。</td></tr>
+          <tr><td>監視設定追加</td><td>Host、Template、Item、Trigger、Action、通知先の関連を確認します。</td></tr>
+          <tr><td>Agent導入</td><td>Agentのバージョン、設定ファイル、Server/ServerActive、ListenPort、疎通を確認します。</td></tr>
+          <tr><td>監視削除</td><td>削除対象、通知停止、依存テンプレート、復旧手順を確認します。</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="agent">Zabbix Agent確認</h2>
+      <div class="code">
+        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>zabbix_agentd -V
+sudo systemctl status zabbix-agent
+sudo grep -E '^(Server|ServerActive|Hostname)=' /etc/zabbix/zabbix_agentd.conf</code></pre>
+      </div>
+
+      <h2 id="media">通知先変更</h2>
+      <p>通知先変更では、対象ユーザー、メディア種別、送信先、通知時間帯、有効/無効を作業前後で比較します。</p>
+      <ol>
+        <li>Zabbix管理画面にサインインします。</li>
+        <li>対象ユーザーまたはユーザーグループを開きます。</li>
+        <li>メディア設定を確認し、作業前エビデンスを取得します。</li>
+        <li>通知先を追加または変更します。</li>
+        <li>更新後の設定と通知テスト結果を確認します。</li>
+      </ol>
+
+      <h2 id="monitoring">監視設定追加</h2>
+      <p>監視設定を追加する場合は、Host、Template、Item、Trigger、Actionを分けて確認します。作業後は最新データ、障害イベント、通知履歴を確認します。</p>
+
+      <h2 id="evidence">エビデンス取得</h2>
+      <table>
+        <thead><tr><th>タイミング</th><th>取得対象</th></tr></thead>
+        <tbody>
+          <tr><td>作業前</td><td>対象Host、Template、Item、Trigger、Action、通知先</td></tr>
+          <tr><td>作業後</td><td>変更後の設定、最新データ、通知テスト、イベント履歴</td></tr>
+          <tr><td>切り戻し時</td><td>変更前設定への復旧、通知停止または復旧確認</td></tr>
+        </tbody>
+      </table>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <h2>目次</h2>
+      <a class="active" href="#scope">対象作業</a>
+      <a href="#agent">Zabbix Agent</a>
+      <a href="#media">通知先変更</a>
+      <a href="#monitoring">監視設定追加</a>
+      <a href="#evidence">エビデンス</a>
+    </aside>
+  </div>
+
+  <script src="../assets/app.js"></script>
+</body>
+</html>

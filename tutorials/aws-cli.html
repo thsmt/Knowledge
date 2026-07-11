@@ -24,6 +24,8 @@
       <a href="cloudformation.html">CloudFormation</a>
       <a class="active" href="aws-cli.html">AWS CLI</a>
       <a href="terraform.html">Terraform</a>
+      <a href="rhel9-ops.html">RHEL9 Operations</a>
+      <a href="zabbix-ops.html">Zabbix</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
     </aside>
 
@@ -101,6 +103,56 @@ aws sts get-caller-identity --profile dev</code></pre>
         <pre><code>aws logs describe-log-groups --profile dev
 aws logs tail /aws/lambda/example-function --follow --profile dev</code></pre>
       </div>
+
+      <h2 id="iam">IAMユーザー・グループ操作</h2>
+      <p>原則として人のログイン用途はIAM Identity Centerを優先します。IAMユーザーを作成する場合は、用途、権限、利用期限、アクセスキーの有無を事前に確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam create-user --user-name &lt;USER_NAME&gt; --profile dev
+aws iam add-user-to-group --user-name &lt;USER_NAME&gt; --group-name &lt;GROUP_NAME&gt; --profile dev
+aws iam list-groups-for-user --user-name &lt;USER_NAME&gt; --profile dev</code></pre>
+      </div>
+
+      <div class="callout">
+        <strong>確認観点</strong>
+        作業前後でユーザー数、所属グループ、付与ポリシーを比較します。アクセスキーを作成する場合は、保管方法、ローテーション、削除予定日を作業記録に残します。
+      </div>
+
+      <h2 id="security-group">Security Group ルール追加・削除</h2>
+      <p>Security Group変更は影響範囲が広いため、対象SG、方向、プロトコル、ポート、送信元/宛先、説明欄を事前に確定します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-security-groups --group-ids &lt;SECURITY_GROUP_ID&gt; --profile dev
+
+aws ec2 authorize-security-group-ingress `
+  --group-id &lt;SECURITY_GROUP_ID&gt; `
+  --ip-permissions IpProtocol=tcp,FromPort=&lt;PORT&gt;,ToPort=&lt;PORT&gt;,IpRanges='[{CidrIp=&lt;CIDR&gt;,Description="&lt;DESCRIPTION&gt;"}]' `
+  --profile dev
+
+aws ec2 revoke-security-group-ingress `
+  --group-id &lt;SECURITY_GROUP_ID&gt; `
+  --protocol tcp `
+  --port &lt;PORT&gt; `
+  --cidr &lt;CIDR&gt; `
+  --profile dev</code></pre>
+      </div>
+
+      <h2 id="sns">SNS Topic・Subscription作成</h2>
+      <p>通知先を作成する場合は、Topic、Subscription、確認メールの承認、通知テストまでを一連の手順として扱います。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns create-topic --name &lt;TOPIC_NAME&gt; --profile dev
+aws sns subscribe --topic-arn &lt;TOPIC_ARN&gt; --protocol email --notification-endpoint &lt;MAIL_ADDRESS&gt; --profile dev
+aws sns publish --topic-arn &lt;TOPIC_ARN&gt; --message "notification test" --profile dev</code></pre>
+      </div>
+
+      <h2 id="route53">Route 53 レコード確認</h2>
+      <p>DNS変更はTTL、現在値、変更後の値、切り戻し値を事前に控えます。TXT/SPFレコードでは引用符、空白、includeの重複に注意します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws route53 list-resource-record-sets --hosted-zone-id &lt;HOSTED_ZONE_ID&gt; --profile dev
+Resolve-DnsName -Name &lt;RECORD_NAME&gt; -Type TXT</code></pre>
+      </div>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
@@ -110,6 +162,10 @@ aws logs tail /aws/lambda/example-function --follow --profile dev</code></pre>
       <a href="#profile">プロファイル</a>
       <a href="#region">リージョン確認</a>
       <a href="#logs">CloudWatch Logs</a>
+      <a href="#iam">IAM操作</a>
+      <a href="#security-group">Security Group</a>
+      <a href="#sns">SNS</a>
+      <a href="#route53">Route 53</a>
     </aside>
   </div>
 

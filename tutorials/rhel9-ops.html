@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RHEL9 運用手順 | Knowledge</title>
+  <meta name="description" content="RHEL9 operation guide for AWS EC2.">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../"><img src="../assets/icon.jpg" alt=""><span>Knowledge</span></a>
+    <nav class="nav" aria-label="Global navigation">
+      <a href="../">Home</a>
+      <a href="cloudformation.html">Guides</a>
+      <a href="https://github.com/thsmt">Repositories</a>
+      <a href="https://github.com/thsmt/Knowledge">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Tutorial navigation">
+      <h2>Guides</h2>
+      <a href="cloudformation.html">CloudFormation</a>
+      <a href="aws-cli.html">AWS CLI</a>
+      <a href="terraform.html">Terraform</a>
+      <a class="active" href="rhel9-ops.html">RHEL9 Operations</a>
+      <a href="zabbix-ops.html">Zabbix</a>
+      <a href="awx-ansible.html">AWX / Ansible</a>
+    </aside>
+
+    <main>
+      <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>Guides</span></div>
+      <p class="meta">Linux / RHEL9 / Operations</p>
+      <h1>RHEL9 運用手順</h1>
+      <p class="lead">AWS EC2上のRHEL9を手動構築・保守する際の確認観点を整理します。実環境名、IPアドレス、顧客固有値は扱わず、再利用できる作業パターンだけをまとめます。</p>
+
+      <div class="callout">
+        <strong>方針</strong>
+        手動手順はAnsible化する前の確認用として扱います。最終的には、パッケージ導入、設定ファイル変更、サービス再起動、ログ確認をPlaybookへ移行できる粒度で整理します。
+      </div>
+
+      <h2 id="precheck">作業前確認</h2>
+      <table>
+        <thead><tr><th>観点</th><th>確認内容</th></tr></thead>
+        <tbody>
+          <tr><td>対象確認</td><td>アカウント、リージョン、インスタンスID、OSバージョン、ホスト名を確認します。</td></tr>
+          <tr><td>退避</td><td>AMI、EBS Snapshot、設定ファイルのバックアップ要否を確認します。</td></tr>
+          <tr><td>接続経路</td><td>Session Manager、踏み台、Security Group一時許可のどれを使うか確認します。</td></tr>
+          <tr><td>影響</td><td>サービス再起動、パッケージ更新、カーネル更新の有無を確認します。</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="baseline">基本パッケージと確認コマンド</h2>
+      <div class="code">
+        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cat /etc/redhat-release
+hostnamectl
+ip addr
+df -h
+free -m
+sudo dnf check-update
+sudo dnf install -y telnet lftp mlocate wget mtr tcpdump tmux bash-completion net-tools</code></pre>
+      </div>
+
+      <h2 id="logrotate">logrotate設定</h2>
+      <p>ログ保持期間や圧縮有無は環境ごとに差が出ます。変更前に既存設定を退避し、変更後に構文とローテーション対象を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>sudo cp -pi /etc/logrotate.conf /etc/logrotate.conf.$(date +%Y%m%d)
+sudo vi /etc/logrotate.conf
+sudo logrotate -d /etc/logrotate.conf</code></pre>
+      </div>
+
+      <h2 id="ssm">SSM Agent確認</h2>
+      <p>Session ManagerやPatch Managerを使う場合は、SSM Agent、IAM Role、VPC Endpointまたはインターネット経路を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>systemctl status amazon-ssm-agent
+sudo systemctl enable amazon-ssm-agent
+sudo systemctl restart amazon-ssm-agent</code></pre>
+      </div>
+
+      <h2 id="cloudwatch-agent">CloudWatch Agent更新</h2>
+      <p>Agent更新では、更新前バージョン、設定ファイル、更新後のサービス状態、CloudWatch Logsへの到達を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>rpm -qa | grep amazon-cloudwatch-agent
+sudo dnf update -y amazon-cloudwatch-agent
+sudo systemctl status amazon-cloudwatch-agent</code></pre>
+      </div>
+
+      <h2 id="apache">Apache更新・設定変更</h2>
+      <p>Apacheの脆弱性対応や設定変更では、更新前後のRPM、構文確認、プロセス確認、ステータス確認を残します。</p>
+      <div class="code">
+        <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>rpm -qa | grep httpd
+sudo apachectl configtest
+sudo systemctl status httpd
+sudo dnf update -y httpd
+sudo apachectl configtest
+sudo systemctl restart httpd
+sudo systemctl status httpd</code></pre>
+      </div>
+
+      <h2 id="evidence">作業前後エビデンス</h2>
+      <p>作業前後で同じ観点を比較します。コマンド結果、AWSコンソールの状態、サービス応答、ログ出力を同じ順序で残すとレビューしやすくなります。</p>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <h2>目次</h2>
+      <a class="active" href="#precheck">作業前確認</a>
+      <a href="#baseline">基本パッケージ</a>
+      <a href="#logrotate">logrotate</a>
+      <a href="#ssm">SSM Agent</a>
+      <a href="#cloudwatch-agent">CloudWatch Agent</a>
+      <a href="#apache">Apache</a>
+      <a href="#evidence">エビデンス</a>
+    </aside>
+  </div>
+
+  <script src="../assets/app.js"></script>
+</body>
+</html>
