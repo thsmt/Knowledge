@@ -34,7 +34,7 @@
       <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>Guides</span></div>
       <p class="meta">AWS / CLI / Operations</p>
       <h1>AWS CLI 実務手順集</h1>
-      <p class="lead">AWS CLIを使った認証確認、リージョン設定、IAM、Security Group、SNS、Elastic IP、S3、Auto Scaling、CloudWatch Logs、CloudFormation、Compute Optimizerの実務手順を整理します。</p>
+      <p class="lead">AWS CLIを使った認証確認、リージョン設定、IAM、Security Group、SNS、Amazon RDS、EC2 / EBS、Elastic IP、S3、Auto Scaling、CloudWatch Logs、CloudFormation、Compute Optimizerの実務手順を整理します。</p>
 
       <div class="callout">
         <strong>補足</strong>
@@ -296,6 +296,45 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
         エンジンバージョン変更は停止を伴う場合があります。<code>--apply-immediately</code> を指定すると、今回再指定した項目だけでなく、同一DBインスタンスに残っている他の保留中変更も即時適用される場合があります。作業前に <code>PendingModifiedValues</code> 全体を確認し、対象外の保留中変更がある場合は作業を中止するか、取り消す各項目の現在値を同一リクエストで再指定します。
       </div>
 
+      <h2 id="ec2-ebs-delete-on-termination">EC2 EBS終了時削除属性の変更</h2>
+      <p>EC2起動後にEBSボリュームの <code>DeleteOnTermination</code> 属性を変更する場合は、AWS CLIで <code>modify-instance-attribute</code> を実行します。追加EBSボリュームは終了時削除が無効になっている場合があるため、検証環境や一時サーバーでは削除漏れ防止のために確認します。詳細は <a href="https://docs.aws.amazon.com/ja_jp/ec2/latest/devguide/example_ec2_ModifyInstanceAttribute_section.html">ModifyInstanceAttribute のAWS公式例</a> と <a href="https://docs.aws.amazon.com/cli/latest/reference/ec2/modify-instance-attribute.html">modify-instance-attribute</a> を確認します。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;INSTANCE_ID&gt;</code></td><td>設定を変更するEC2インスタンスID</td></tr>
+          <tr><td><code>&lt;DEVICE_NAME&gt;</code></td><td>対象EBSボリュームのDeviceName。例: <code>/dev/sdf</code>、<code>/dev/xvdf</code></td></tr>
+        </tbody>
+      </table>
+
+      <p>現在のBlockDeviceMappingと、終了時削除属性を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-instances --instance-ids &lt;INSTANCE_ID&gt; --query "Reservations[0].Instances[0].BlockDeviceMappings[*].{DeviceName:DeviceName,VolumeId:Ebs.VolumeId,DeleteOnTermination:Ebs.DeleteOnTermination}" --output table</code></pre>
+      </div>
+
+      <p>対象EBSボリュームを、EC2終了時に削除される設定へ変更します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 modify-instance-attribute --instance-id &lt;INSTANCE_ID&gt; --block-device-mappings '[{"DeviceName":"&lt;DEVICE_NAME&gt;","Ebs":{"DeleteOnTermination":true}}]'</code></pre>
+      </div>
+
+      <p>データ保持が必要なボリュームの場合は、終了時に削除されない設定へ戻します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 modify-instance-attribute --instance-id &lt;INSTANCE_ID&gt; --block-device-mappings '[{"DeviceName":"&lt;DEVICE_NAME&gt;","Ebs":{"DeleteOnTermination":false}}]'</code></pre>
+      </div>
+
+      <p>変更後に、対象DeviceNameの <code>DeleteOnTermination</code> が想定した値になっていることを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-instances --instance-ids &lt;INSTANCE_ID&gt; --query "Reservations[0].Instances[0].BlockDeviceMappings[*].{DeviceName:DeviceName,VolumeId:Ebs.VolumeId,DeleteOnTermination:Ebs.DeleteOnTermination}" --output table</code></pre>
+      </div>
+
+      <div class="callout">
+        <strong>注意</strong>
+        <code>modify-instance-attribute</code> では、Volume IDではなくインスタンス側の <code>DeviceName</code> を指定します。終了時削除を有効にすると、EC2インスタンスをterminateしたタイミングで対象EBSボリュームも削除されます。DB、ログ、永続データを保持するボリュームでは有効化しないよう、作業前に用途を確認します。
+      </div>
+
       <h2 id="elastic-ip">Elastic IP 解放後の再取得</h2>
       <p>Elastic IPを誤って解放した場合でも、他のAWSアカウントに割り当てられていなければ、AWS CLIで同じPublic IPv4アドレスを指定して再取得できる場合があります。詳細は <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html">Amazon EC2 User Guide</a> を確認します。</p>
       <table>
@@ -554,6 +593,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       <a href="#prefix-list">Prefix List</a>
       <a href="#sns">SNS</a>
       <a href="#rds-pending-maintenance">Amazon RDS保留変更</a>
+      <a href="#ec2-ebs-delete-on-termination">EBS終了時削除</a>
       <a href="#elastic-ip">Elastic IP</a>
       <a href="#s3-versioning-restore">S3 Versioning復元</a>
       <a href="#iam-virtual-mfa-cleanup">IAM仮想MFA</a>
