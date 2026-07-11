@@ -120,6 +120,10 @@ main {
   min-width: 0;
 }
 
+.aws-cli-guide h2 {
+  margin-top: 68px;
+}
+
 .breadcrumb {
   display: flex;
   gap: 8px;
