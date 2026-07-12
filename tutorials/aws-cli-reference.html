@@ -23,15 +23,16 @@
     <aside class="sidebar" aria-label="Page list">
       <h2>ページ一覧</h2>
       <a href="cloudformation.html">CloudFormation</a>
-      <a href="aws-cli.html">AWS CLI</a>
+      <a href="aws-cli.html">AWS CLI 特殊対応</a>
       <a class="active" href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="terraform.html">Terraform</a>
       <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
       <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
-      <a href="eol.html">EOL / Lifecycle</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
     </aside>
 
     <main class="content aws-cli-guide">
@@ -45,8 +46,8 @@
       <p class="lead">日常運用でよく使うAWS CLIの基本確認、IAM、Security Group、Prefix List、SNSなどのコマンドを整理します。</p>
 
       <div class="callout">
-        <strong>使い分け</strong>
-        <p>本ページは、コンソールでも可能だがCLIの方が早い定型操作をまとめます。GUIだけでは対応しづらい復旧・取り消し系の操作は、<a href="aws-cli.html">AWS CLI 特殊対応集</a> に分けています。</p>
+        <strong>📍 使い分け</strong>
+        <p>本ページは、コンソールでも可能だがCLIの方が早い定型操作をまとめます。CLI/APIでしか変更・切り戻し・復旧できない操作は、<a href="aws-cli.html">AWS CLI 特殊対応</a> に分けています。</p>
       </div>
       <h2 id="setup">AWS CLIの初期設定</h2>
       <h3 id="install">インストール</h3>
@@ -101,7 +102,7 @@ aws --version</code></pre>
       </div>
 
       <div class="callout">
-        <strong>補足</strong>
+        <strong>ℹ️ 補足</strong>
         <code>--profile</code> は、複数のAWSアカウントやIAMユーザーを名前付きプロファイルで切り替える場合だけ指定します。このページでは、デフォルト認証情報を使う前提で記載します。
       </div>
 
@@ -183,8 +184,8 @@ aws --version</code></pre>
 
       <h2 id="prefix-list">Prefix List作成・IP登録</h2>
       <p>接続元IPが複数ある場合は、Security GroupへCIDRを1件ずつ直接追加するのではなく、Customer-managed Prefix ListにまとめてからSecurity Groupで参照します。変更対象をPrefix List側に寄せられるため、接続元IPの追加・削除を運用しやすくなります。詳細は <a href="https://docs.aws.amazon.com/vpc/latest/userguide/managed-prefix-lists.html">Managed prefix lists</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/ec2/create-managed-prefix-list.html">create-managed-prefix-list</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/ec2/modify-managed-prefix-list.html">modify-managed-prefix-list</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/ec2/authorize-security-group-ingress.html">authorize-security-group-ingress</a> を確認します。</p>
-      <div class="notice">
-        <strong>注意</strong>
+      <div class="notice notice-warning">
+        <strong>⚠️ 注意</strong>
         Security Groupの画面上は1つのPrefix List参照として整理できます。ただし、Customer-managed Prefix ListをSecurity Groupで参照する場合、クォータ上はPrefix Listの最大エントリ数分として扱われます。最大エントリ数は余裕を持たせすぎず、運用に必要な範囲で設計します。
       </div>
       <table>

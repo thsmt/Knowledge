@@ -21,15 +21,16 @@
     <aside class="sidebar" aria-label="Tutorial navigation">
       <h2>ページ一覧</h2>
       <a href="cloudformation.html">CloudFormation</a>
-      <a href="aws-cli.html">AWS CLI</a>
+      <a href="aws-cli.html">AWS CLI 特殊対応</a>
       <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="terraform.html">Terraform</a>
       <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
       <a class="active" href="windows-server-2022.html">[構築] Windows Server 2022</a>
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
-      <a href="eol.html">EOL / Lifecycle</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
     </aside>
 
     <main>
@@ -39,7 +40,7 @@
       <p class="lead">AWS EC2上のWindows Server 2022で、接続、ローカルユーザー作成、OS初期設定を行うための手順です。EC2起動時のタグ設計やストレージ属性ではなく、起動後のサーバ構築・設定作業に絞って整理します。</p>
 
       <div class="callout">
-        <strong>前提</strong>
+        <strong>ℹ️ 前提</strong>
         実環境名、顧客名、社内固有パス、固定IPアドレスは扱わず、再利用できる手順として一般化しています。<code>&lt;WINDOWS_PRIVATE_IP&gt;</code>、<code>&lt;HOSTNAME&gt;</code>、<code>&lt;CUSTOMER_USER&gt;</code> などは環境に合わせて置き換えます。
       </div>
 
@@ -97,7 +98,7 @@
       </ol>
 
       <div class="callout">
-        <strong>接続できない場合</strong>
+        <strong>ℹ️ 接続できない場合</strong>
         パスワード未復号、SSM Agent未起動、IAMインスタンスプロファイルの権限不足、NAT GatewayまたはSSM関連VPCエンドポイントへの経路不足を確認します。IAMには <code>AmazonSSMManagedInstanceCore</code> 相当の権限が必要です。
       </div>
 
@@ -207,8 +208,8 @@ Remove-Item (Get-PSReadLineOption).HistorySavePath -ErrorAction SilentlyContinue
         <li>ドメイン、プライベート、パブリックの各プロファイルでファイアウォール状態を確認します。</li>
       </ol>
 
-      <div class="callout">
-        <strong>注意</strong>
+      <div class="callout callout-warning">
+        <strong>⚠️ 注意</strong>
         Windows Firewallの無効化は、標準化された運用要件がある場合のみ実施します。公開サーバーや不特定経路から到達可能なサーバーでは、原則としてOS側ファイアウォールも含めて防御層を確認します。
       </div>
 

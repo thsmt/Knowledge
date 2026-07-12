@@ -9,11 +9,14 @@ https://thsmt.github.io/Knowledge/
 ## 目的
 
 - CloudFormation 運用手順の整理
-- AWS CLI 実務手順の整理
-- Terraform 入門から運用までの整理
+- AWS CLI 特殊対応の整理
+- AWS CLI コマンドリファレンスの整理
+- 障害切り分けチェックリストの整理
+- Terraform の整理
 - [構築] Red Hat Enterprise Linux 9の整理
 - [構築] Amazon Linux 2023の整理
 - [構築] Windows Server 2022の整理
 - Zabbix 6.0 運用手順の整理
 - AWX / Ansible 手順の整理
+- EOL / ライフサイクル一覧表の整理
 - GitHub Pages の公開確認

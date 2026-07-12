@@ -22,16 +22,17 @@
   <div class="layout">
     <aside class="sidebar" aria-label="Page list">
       <h2>ページ一覧</h2>
-      <a class="active" href="tutorials/cloudformation.html">CloudFormation</a>
-      <a href="tutorials/aws-cli.html">AWS CLI</a>
+      <a href="tutorials/cloudformation.html">CloudFormation</a>
+      <a href="tutorials/aws-cli.html">AWS CLI 特殊対応</a>
       <a href="tutorials/aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="tutorials/linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="tutorials/terraform.html">Terraform</a>
       <a href="tutorials/rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="tutorials/amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
       <a href="tutorials/windows-server-2022.html">[構築] Windows Server 2022</a>
       <a href="tutorials/zabbix-ops.html">Zabbix 6.0</a>
       <a href="tutorials/awx-ansible.html">AWX / Ansible</a>
-      <a href="tutorials/eol.html">EOL / Lifecycle</a>
+      <a href="tutorials/eol.html">EOL / ライフサイクル一覧表</a>
     </aside>
 
     <main class="content">
@@ -46,7 +47,7 @@
       <p>各GitHubリポジトリには構成図、CloudFormationテンプレート、パラメータ例を置き、このサイトにはリポジトリをまたいで使う運用手順や確認観点をまとめます。</p>
 
       <div class="callout">
-        <strong>運用方針</strong>
+        <strong>📍 運用方針</strong>
         <p>リポジトリは実装本体、Knowledge は横断手順集として分けます。変更作業、障害時の確認、ツール操作の手順を中心に整理します。</p>
       </div>
 
@@ -57,12 +58,16 @@
           <p>デプロイ方法、変更セット、ロールバック、ドリフト検出、削除前確認などを整理します。</p>
         </article>
         <article class="card">
-          <strong><a href="tutorials/aws-cli.html">AWS CLI 特殊対応集</a></strong>
-          <p>GUIだけでは対応しづらい復旧、取り消し、属性変更などの運用手順をまとめます。</p>
+          <strong><a href="tutorials/aws-cli.html">AWS CLI 特殊対応</a></strong>
+          <p>CLI/APIでしか変更・切り戻し・復旧できない運用手順をまとめます。</p>
         </article>
         <article class="card">
           <strong><a href="tutorials/aws-cli-reference.html">AWS CLI コマンドリファレンス</a></strong>
           <p>認証確認、Security Group、Prefix List、SNSなど、日常運用で使う基本コマンドを整理します。</p>
+        </article>
+        <article class="card">
+          <strong><a href="tutorials/linux-troubleshooting.html">障害切り分けチェックリスト</a></strong>
+          <p>Linux障害発生時の初動記録、ログ、リソース、ネットワーク、サービス状態の確認観点を整理します。</p>
         </article>
         <article class="card">
           <strong><a href="tutorials/terraform.html">Terraform</a></strong>

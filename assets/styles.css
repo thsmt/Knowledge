@@ -199,12 +199,14 @@ li {
   margin: 8px 0 0;
 }
 
-.callout-warning {
+.callout-warning,
+.notice-warning {
   background: rgba(250, 204, 21, 0.12);
   border-color: #eab308;
 }
 
-.callout-warning strong {
+.callout-warning strong,
+.notice-warning strong {
   color: #fde68a;
 }
 

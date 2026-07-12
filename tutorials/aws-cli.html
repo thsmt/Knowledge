@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AWS CLI 特殊対応集 | Knowledge</title>
+  <title>AWS CLI 特殊対応 | Knowledge</title>
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -23,15 +23,16 @@
     <aside class="sidebar" aria-label="Page list">
       <h2>ページ一覧</h2>
       <a href="cloudformation.html">CloudFormation</a>
-      <a class="active" href="aws-cli.html">AWS CLI</a>
+      <a class="active" href="aws-cli.html">AWS CLI 特殊対応</a>
       <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="terraform.html">Terraform</a>
       <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
       <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
-      <a href="eol.html">EOL / Lifecycle</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
     </aside>
 
     <main class="content aws-cli-guide">
@@ -41,11 +42,11 @@
       </nav>
 
       <p class="eyebrow">AWS / CLI / Operations</p>
-      <h1>AWS CLI 特殊対応集</h1>
+      <h1>AWS CLI 特殊対応</h1>
       <p class="lead">AWS CLI/APIでしか変更・切り戻し・復旧できない運用手順を整理します。</p>
 
       <div class="callout">
-        <strong>掲載方針</strong>
+        <strong>📍 掲載方針</strong>
         <p>このページでは、CLI/APIでしか変更または切り戻しできない操作を扱います。Security GroupやSNSなどの日常的な基本コマンドは、<a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a> に分けています。</p>
       </div>
       <h2 id="rds-pending-maintenance">Amazon RDS 保留中の変更の取り消し</h2>
@@ -113,7 +114,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </details>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         <p>エンジンバージョン変更は停止を伴う場合があります。</p>
         <p><code>--apply-immediately</code> を指定した場合は今回再指定した項目だけでなく、同一DBインスタンスに残っている他の保留中変更も即時適用される場合があります。</p>
         <p>作業前に <code>PendingModifiedValues</code> 全体を確認し、対象外の保留中変更がある場合は作業を中止するか、取り消す各項目の現在値を同一リクエストで再指定します。</p>
@@ -154,7 +155,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         <code>modify-instance-attribute</code> では、Volume IDではなくインスタンス側の <code>DeviceName</code> を指定します。終了時削除を有効にすると、EC2インスタンスをterminateしたタイミングで対象EBSボリュームも削除されます。DB、ログ、永続データを保持するボリュームでは有効化しないよう、作業前に用途を確認します。
       </div>
 
@@ -183,7 +184,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         解放済みのElastic IPが他のAWSアカウントに割り当てられている場合は再取得できません。作業前に対象リージョン、対象IP、現在の割り当て状況を確認します。
       </div>
 
@@ -224,7 +225,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         <code>--version-id</code> を付けずに <code>delete-object</code> を実行すると、Delete Markerを削除するのではなく、新しいDelete Markerを追加する動作になります。復元作業では、削除対象がDelete Marker自身のVersion IDであることを必ず確認します。
       </div>
 
@@ -256,7 +257,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         IAMユーザーに割り当て済みのMFAデバイスは、先に割り当て解除が必要です。この手順は、登録途中で残った未割当てMFAデバイスの整理を目的とします。
       </div>
 
@@ -296,7 +297,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         <code>CONTINUE</code> と <code>ABANDON</code> の意味は、起動時と終了時で運用影響が異なります。事前にLifecycle Hookの目的、通知先、タイムアウト、デフォルト結果を確認してから実行します。
       </div>
 
@@ -329,7 +330,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         CloudWatch Logsで使用できるのは対称KMSキーです。反映に数分かかる場合があり、関連付け後に取り込まれたログデータが対象KMSキーで暗号化されます。KMSキーを無効化または削除すると、そのキーで暗号化されたログを読み出せなくなるため、キーのライフサイクル管理も確認します。
       </div>
 
@@ -383,7 +384,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         Stack Policyは削除ではなく置き換えで管理します。保護を解除する場合も、すべての更新を許可するPolicyへ置き換える運用になります。設定前に、対象Logical IDと更新計画を必ず確認します。
       </div>
 
@@ -403,7 +404,7 @@ aws rds describe-db-instances --db-instance-identifier database-1 --query "DBIns
       </div>
 
       <div class="callout callout-warning">
-        <strong>注意</strong>
+        <strong>⚠️ 注意</strong>
         オプトアウト時に <code>--include-member-accounts</code> を指定するとエラーになります。また、オプトアウトすると対象アカウントのレコメンデーションと関連メトリクスデータはCompute Optimizerから削除されます。
       </div>
     </main>

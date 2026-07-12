@@ -21,15 +21,16 @@
     <aside class="sidebar" aria-label="Tutorial navigation">
       <h2>ページ一覧</h2>
       <a href="cloudformation.html">CloudFormation</a>
-      <a href="aws-cli.html">AWS CLI</a>
+      <a href="aws-cli.html">AWS CLI 特殊対応</a>
       <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="terraform.html">Terraform</a>
       <a class="active" href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
       <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
-      <a href="eol.html">EOL / Lifecycle</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
     </aside>
 
     <main>
@@ -39,7 +40,7 @@
       <p class="lead">AWS EC2上のRed Hat Enterprise Linux 9を手動構築する際の初期設定、SSH、cloud-init、swap、ミドルウェア、Apache、Postfix、logrotateを整理します。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています。</p>
 
       <div class="callout">
-        <strong>前提</strong>
+        <strong>ℹ️ 前提</strong>
         実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;FQDN&gt;</code>、<code>&lt;PRIVATE_IP&gt;</code> などは環境に合わせて置き換えます。
       </div>
 
@@ -116,7 +117,7 @@ enabled=0</code></pre>
       </div>
 
       <div class="callout">
-        <strong>補足</strong>
+        <strong>ℹ️ 補足</strong>
         有効なままだと <code>This system is not registered with an entitlement server.</code> のようなメッセージが表示され、パッケージ更新時の確認が煩雑になる場合があります。
       </div>
 
@@ -232,8 +233,8 @@ HISTTIMEFORMAT='%Y-%m-%d %T '
 PS1="[\u@\h \W \t]\\$ "</code></pre>
       </div>
 
-      <div class="callout">
-        <strong>注意</strong>
+      <div class="callout callout-warning">
+        <strong>⚠️ 注意</strong>
         <code>/etc/skel/.bash_profile</code> は新規ユーザー作成時の雛形です。既に作成済みのユーザーには反映されないため、必要に応じて <code>/home</code> 配下の各ユーザーのファイルを個別に修正します。
       </div>
 
@@ -666,7 +667,7 @@ IncludeOptional /etc/httpd/conf.d/*.conf</code></pre>
       </details>
 
       <div class="callout">
-        <strong>補足</strong>
+        <strong>ℹ️ 補足</strong>
         prefork MPMはPHPとのモジュール連携などで注意点が多いため、原則としてevent MPMを前提にします。要件上preforkを使う場合は、PHP周辺設定も含めて別途検証します。
       </div>
 
@@ -821,8 +822,8 @@ include /etc/logrotate.d
 # system-specific logs may be also be configured here.</code></pre>
       </div>
 
-      <div class="callout">
-        <strong>注意</strong>
+      <div class="callout callout-warning">
+        <strong>⚠️ 注意</strong>
         <code>/etc/logrotate.d/</code> 配下にバックアップファイルを置くと、バックアップファイル内の記述もlogrotateの対象として読み込まれる可能性があります。退避ファイルは別ディレクトリ、またはlogrotateが読み込まない名前・場所で管理します。
       </div>
 
