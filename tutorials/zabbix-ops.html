@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zabbix 運用手順 | Knowledge</title>
+  <title>Zabbix 6.0 運用手順 | Knowledge</title>
   <meta name="description" content="Zabbix operation guide.">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
@@ -24,9 +24,9 @@
       <a href="cloudformation.html">CloudFormation</a>
       <a href="aws-cli.html">AWS CLI</a>
       <a href="terraform.html">Terraform</a>
-      <a href="rhel9-ops.html">RHEL9 Build</a>
-      <a href="windows-server-2022.html">Windows Server</a>
-      <a class="active" href="zabbix-ops.html">Zabbix</a>
+      <a href="rhel9-ops.html">RHEL9 手動構築</a>
+      <a href="windows-server-2022.html">Windows Server 2022</a>
+      <a class="active" href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
       <a href="eol.html">EOL / Lifecycle</a>
     </aside>
@@ -34,7 +34,7 @@
     <main>
       <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>Guides</span></div>
       <p class="meta">Monitoring / Zabbix / Operations</p>
-      <h1>Zabbix 運用手順</h1>
+      <h1>Zabbix 6.0 運用手順</h1>
       <p class="lead">Zabbix 6.0を想定し、Linux / RHEL9とWindows ServerのZabbix Agent 2導入、ホストグループ作成、メンテナンス設定、ホスト登録、最新データ確認を整理します。OSごとに差分が出る手順はタブで切り替えます。</p>
 
       <div class="callout">
@@ -250,25 +250,6 @@ Hostname=&lt;HOSTNAME&gt;</code></pre>
         <li>Latest checkの時刻が更新され、値が取得されていることを確認します。</li>
       </ol>
 
-      <h2 id="media">7. 通知先変更</h2>
-      <p>通知先変更では、対象ユーザー、メディア種別、送信先、通知時間帯、有効/無効を作業前後で比較します。</p>
-      <ol>
-        <li>Zabbix管理画面にサインインします。</li>
-        <li>対象ユーザーまたはユーザーグループを開きます。</li>
-        <li>メディア設定を確認し、作業前エビデンスを取得します。</li>
-        <li>通知先を追加または変更します。</li>
-        <li>更新後の設定と通知テスト結果を確認します。</li>
-      </ol>
-
-      <h2 id="evidence">8. エビデンス取得</h2>
-      <table>
-        <thead><tr><th>タイミング</th><th>取得対象</th></tr></thead>
-        <tbody>
-          <tr><td>作業前</td><td>対象Host、Template、Item、Trigger、Action、通知先、メンテナンス設定。</td></tr>
-          <tr><td>作業後</td><td>変更後の設定、最新データ、通知テスト、イベント履歴。</td></tr>
-          <tr><td>切り戻し時</td><td>変更前設定への復旧、通知停止または復旧確認。</td></tr>
-        </tbody>
-      </table>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
@@ -279,8 +260,6 @@ Hostname=&lt;HOSTNAME&gt;</code></pre>
       <a href="#maintenance">4. メンテナンス</a>
       <a href="#host-registration">5. ホスト登録</a>
       <a href="#latest-data">6. 最新データ確認</a>
-      <a href="#media">7. 通知先変更</a>
-      <a href="#evidence">8. エビデンス</a>
     </aside>
   </div>
 
