@@ -13,7 +13,6 @@
       <span>Knowledge</span>
     </a>
     <div class="header-actions">
-      <button class="icon-button sidebar-toggle" type="button" aria-controls="site-sidebar" aria-expanded="true" title="ページ一覧を閉じる" aria-label="ページ一覧を閉じる">☰</button>
       <button class="icon-button theme-toggle" type="button" title="テーマを切り替え" aria-label="テーマを切り替え">☀</button>
       <nav class="nav" aria-label="Global navigation">
         <a href="../">Home</a>
@@ -25,7 +24,10 @@
 
   <div class="layout">
     <aside id="site-sidebar" class="sidebar" aria-label="Page list">
-      <h2>ページ一覧</h2>
+      <div class="sidebar-heading">
+        <h2>ページ一覧</h2>
+        <button class="icon-button sidebar-toggle sidebar-toggle-inline" type="button" aria-controls="site-sidebar" aria-expanded="true" title="ページ一覧を閉じる" aria-label="ページ一覧を閉じる">☰</button>
+      </div>
       <a href="cloudformation.html">CloudFormation</a>
       <a class="active" href="aws-cli.html">AWS CLI 特殊対応</a>
       <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>

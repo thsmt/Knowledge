@@ -23,14 +23,11 @@ themeToggle?.addEventListener("click", () => {
 });
 
 const sidebarToggle = document.querySelector(".sidebar-toggle");
-const sidebarQuery = window.matchMedia("(max-width: 980px)");
 
 const syncSidebarToggle = () => {
   if (!sidebarToggle) return;
 
-  const isOpen = sidebarQuery.matches
-    ? document.body.classList.contains("sidebar-open")
-    : !document.body.classList.contains("sidebar-collapsed");
+  const isOpen = !document.body.classList.contains("sidebar-collapsed");
 
   sidebarToggle.setAttribute("aria-expanded", String(isOpen));
   sidebarToggle.setAttribute("title", isOpen ? "ページ一覧を閉じる" : "ページ一覧を開く");
@@ -38,17 +35,8 @@ const syncSidebarToggle = () => {
 };
 
 sidebarToggle?.addEventListener("click", () => {
-  if (sidebarQuery.matches) {
-    document.body.classList.toggle("sidebar-open");
-  } else {
-    document.body.classList.toggle("sidebar-collapsed");
-  }
+  document.body.classList.toggle("sidebar-collapsed");
 
-  syncSidebarToggle();
-});
-
-sidebarQuery.addEventListener("change", () => {
-  document.body.classList.remove("sidebar-open", "sidebar-collapsed");
   syncSidebarToggle();
 });
 
