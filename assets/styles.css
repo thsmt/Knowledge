@@ -304,6 +304,16 @@ table {
   font-size: 14px;
 }
 
+.lifecycle-table {
+  table-layout: fixed;
+}
+
+.lifecycle-table th,
+.lifecycle-table td,
+.lifecycle-table a {
+  overflow-wrap: anywhere;
+}
+
 th,
 td {
   padding: 10px 12px;
