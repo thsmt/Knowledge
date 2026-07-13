@@ -30,6 +30,7 @@
       <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
       <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="amazon-workspaces.html">Amazon WorkSpaces</a>
+      <a href="amazon-ses.html">Amazon SES</a>
       <a href="terraform.html">Terraform</a>
       <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
@@ -94,14 +95,16 @@
           <p>PSK暗号化を利用する場合は、Agent側でPSKファイルを作成します。</p>
           <div class="code">
             <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
-            <pre><code>openssl rand -hex 64 &gt; /etc/zabbix/zabbix_agent2.psk</code></pre>
+            <pre><code>mkdir -p /etc/zabbix/zabbix_agent2.d
+openssl rand -hex 64 &gt; /etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk
+cat /etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk</code></pre>
           </div>
 
           <p>PSKファイルの所有者と権限を設定します。</p>
           <div class="code">
             <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
-            <pre><code>chown zabbix:zabbix /etc/zabbix/zabbix_agent2.psk
-chmod 600 /etc/zabbix/zabbix_agent2.psk</code></pre>
+            <pre><code>chown zabbix:zabbix /etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk
+chmod 600 /etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk</code></pre>
           </div>
 
           <p>Agent設定ファイルを編集します。</p>
@@ -119,19 +122,19 @@ Hostname=&lt;HOSTNAME&gt;
 TLSConnect=psk
 TLSAccept=psk
 TLSPSKIdentity=&lt;ZABBIX_PSK_IDENTITY&gt;
-TLSPSKFile=/etc/zabbix/zabbix_agent2.psk</code></pre>
+TLSPSKFile=/etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk</code></pre>
           </div>
 
           <div class="callout">
             <strong>🔐 PSK値の扱い</strong>
-            <p>Zabbix画面に登録するPSK valueは、作成した <code>/etc/zabbix/zabbix_agent2.psk</code> の値を使用します。作業記録やチケット本文に平文で残さないようにします。</p>
+            <p>Zabbix画面に登録するPSK valueは、作成した <code>/etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk</code> の値を使用します。作業記録やチケット本文に平文で残さないようにします。</p>
           </div>
 
           <p>設定値を確認します。</p>
           <div class="code">
             <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
             <pre><code>grep -E '^(Server|ServerActive|Hostname|TLSConnect|TLSAccept|TLSPSKIdentity|TLSPSKFile)=' /etc/zabbix/zabbix_agent2.conf
-ls -l /etc/zabbix/zabbix_agent2.psk</code></pre>
+ls -l /etc/zabbix/zabbix_agent2.d/zabbix_agent2.psk</code></pre>
           </div>
 
           <p>Zabbix Agent 2のバージョンを確認します。</p>

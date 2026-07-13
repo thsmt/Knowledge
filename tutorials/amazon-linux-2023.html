@@ -30,6 +30,7 @@
       <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
       <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
       <a href="amazon-workspaces.html">Amazon WorkSpaces</a>
+      <a href="amazon-ses.html">Amazon SES</a>
       <a href="terraform.html">Terraform</a>
       <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a class="active" href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
@@ -225,7 +226,56 @@ systemctl status sshd</code></pre>
 df -hT</code></pre>
       </div>
 
-      <h2 id="step-10">10. swap領域作成</h2>
+      <h2 id="step-10">10. Amazon EFSのマウント</h2>
+      <p>Amazon EFSを利用する場合は、EFS用Security Group、マウントターゲット、マウント方式を確認します。不要な場合はこの手順をスキップします。</p>
+      <div class="callout">
+        <strong>ℹ️ 情報</strong>
+        <p>基本は <code>amazon-efs-utils</code> のマウントヘルパーを利用します。IPアドレスを指定したNFSv4.1マウントは、疎通確認や個別要件でマウントターゲットを明示したい場合に利用します。</p>
+      </div>
+
+      <p>マウントポイントを作成し、EFSマウントヘルパーを導入します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mkdir -p /mnt/efs
+dnf install -y amazon-efs-utils</code></pre>
+      </div>
+
+      <p>EFS用Security Groupでは、対象EC2のSecurity GroupまたはプライベートIPから <code>2049/tcp</code> を許可します。</p>
+
+      <p>マウントヘルパーを利用してマウントします。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mount -t efs -o tls &lt;EFS_FILE_SYSTEM_ID&gt;:/ /mnt/efs
+df -Th</code></pre>
+      </div>
+
+      <p>マウントターゲットのIPアドレスを指定して確認する場合は、NFSv4.1でマウントします。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport &lt;EFS_MOUNT_TARGET_IP&gt;:/ /mnt/efs/
+df -Th</code></pre>
+      </div>
+
+      <p>再起動後もマウントする場合は、<code>/etc/fstab</code> に追記します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>cp -pi /etc/fstab /etc/fstab.org
+vi /etc/fstab</code></pre>
+      </div>
+
+      <div class="code">
+        <div class="code-header"><span>fstab</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>&lt;EFS_FILE_SYSTEM_ID&gt;:/ /mnt/efs efs defaults,_netdev,tls 0 0</code></pre>
+      </div>
+
+      <p><code>/etc/fstab</code> の設定でマウントできることを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>mount -a
+df -Th</code></pre>
+      </div>
+
+      <h2 id="step-11">11. swap領域作成</h2>
       <p>現在のswap領域を確認します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -281,7 +331,7 @@ vi /etc/fstab</code></pre>
         <pre><code>mount -a</code></pre>
       </div>
 
-      <h2 id="step-11">11. ミドルウェアのインストール方針</h2>
+      <h2 id="step-12">12. ミドルウェアのインストール方針</h2>
       <p>Amazon Linux 2023では <code>dnf</code> を利用します。<code>yum</code> も利用できますが、実体は <code>dnf</code> へ向くため、このページでは <code>dnf</code> で統一します。</p>
       <p>利用可能なパッケージを確認します。</p>
       <div class="code">
@@ -305,7 +355,7 @@ dnf install -y postgresql15</code></pre>
         外部リポジトリを追加する前に、標準リポジトリで提供されるパッケージとサポート方針を確認します。DBサーバー本体を構築する場合は、<code>mariadb105-server</code> や <code>postgresql15-server</code> など、環境で利用するバージョンに合わせて別途検証します。
       </div>
 
-      <h2 id="step-12">12. Postfix設定</h2>
+      <h2 id="step-13">13. Postfix設定</h2>
       <p>Postfixを利用する場合は、設定ファイルを退避してからホスト名やドメイン、リレー先などを設定します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -321,7 +371,7 @@ systemctl enable --now postfix
 systemctl status postfix</code></pre>
       </div>
 
-      <h2 id="step-13">13. Apache設定</h2>
+      <h2 id="step-14">14. Apache設定</h2>
       <p>Apacheを利用する場合は、設定ファイルを退避してから変更します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -337,7 +387,7 @@ systemctl enable --now httpd
 systemctl status httpd</code></pre>
       </div>
 
-      <h2 id="step-14">14. 基本コマンドのインストール</h2>
+      <h2 id="step-15">15. 基本コマンドのインストール</h2>
       <p>運用調査で利用する基本コマンドを導入します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -351,7 +401,7 @@ bash-completion net-tools bind-utils sysstat lsof tar zip unzip logrotate</code>
         <pre><code>rpm -q logrotate sysstat bind-utils net-tools</code></pre>
       </div>
 
-      <h2 id="step-15">15. Amazon Linux 2023リリース更新</h2>
+      <h2 id="step-16">16. Amazon Linux 2023リリース更新</h2>
       <p>Amazon Linux 2023はリリースバージョンを指定して更新できます。新しいリリースが利用可能な場合は、<code>dnf check-release-update</code> の結果を確認してから、適用するリリースを明示します。</p>
       <p>利用可能なリリースを確認します。</p>
       <div class="code">
@@ -392,7 +442,7 @@ Version 2023.8.20250804:
         <pre><code>cat /etc/os-release</code></pre>
       </div>
 
-      <h2 id="step-16">16. rsyslog設定</h2>
+      <h2 id="step-17">17. rsyslog設定</h2>
       <p>Amazon Linux 2023は <code>systemd-journald</code> が標準です。従来の <code>/var/log/messages</code>、<code>/var/log/secure</code>、<code>/var/log/cron</code>、SFTPログファイルを使う運用では <code>rsyslog</code> を追加導入します。</p>
       <p>rsyslogをインストールして有効化します。</p>
       <div class="code">
@@ -429,7 +479,7 @@ logger -p local3.info "sftp log test"
 tail -n 20 /var/log/sftp.log</code></pre>
       </div>
 
-      <h2 id="step-17">17. cron設定</h2>
+      <h2 id="step-18">18. cron設定</h2>
       <p>Amazon Linux 2023ではcronがデフォルトでは利用できません。既存運用で <code>crontab</code> を使用する場合は <code>cronie</code> を導入し、<code>crond</code> を有効化します。</p>
       <p>cronieをインストールします。</p>
       <div class="code">
@@ -450,7 +500,7 @@ systemctl status crond</code></pre>
         <pre><code>crontab -l</code></pre>
       </div>
 
-      <h2 id="step-18">18. sudoers編集時のエディタ指定</h2>
+      <h2 id="step-19">19. sudoers編集時のエディタ指定</h2>
       <p><code>visudo</code> 実行時に意図せず <code>nano</code> が開く場合は、作業セッションで利用するエディタを明示します。</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -465,7 +515,7 @@ visudo</code></pre>
         <pre><code>visudo -c</code></pre>
       </div>
 
-      <h2 id="step-19">19. logrotate設定</h2>
+      <h2 id="step-20">20. logrotate設定</h2>
       <p>rsyslogやミドルウェアのログをファイル出力する場合は、logrotate設定を確認します。</p>
       <p>共通設定を退避して編集します。</p>
       <div class="code">
@@ -505,7 +555,7 @@ cat /etc/logrotate.d/syslog</code></pre>
         <pre><code>logrotate -d /etc/logrotate.conf</code></pre>
       </div>
 
-      <h2 id="step-20">20. 作業後確認</h2>
+      <h2 id="step-21">21. 作業後確認</h2>
       <table>
         <thead>
           <tr>
@@ -519,6 +569,7 @@ cat /etc/logrotate.d/syslog</code></pre>
           <tr><td>ホスト名</td><td><code>hostnamectl</code></td></tr>
           <tr><td>時刻同期</td><td><code>timedatectl</code></td></tr>
           <tr><td>SSH</td><td><code>systemctl status sshd</code></td></tr>
+          <tr><td>Amazon EFS</td><td><code>df -Th</code></td></tr>
           <tr><td>swap</td><td><code>swapon --show</code></td></tr>
           <tr><td>Apache</td><td><code>systemctl status httpd</code></td></tr>
           <tr><td>Postfix</td><td><code>systemctl status postfix</code></td></tr>
@@ -536,6 +587,8 @@ cat /etc/logrotate.d/syslog</code></pre>
         <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/journald.html">systemd journal replaces rsyslog - Amazon Linux 2023</a></li>
         <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/cron.html">systemd timers replace cron - Amazon Linux 2023</a></li>
         <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/enforcing-mode.html">Change to enforcing mode - Amazon Linux 2023</a></li>
+        <li><a href="https://docs.aws.amazon.com/efs/latest/ug/efs-mount-helper.html">Mounting EFS file systems using the EFS mount helper - Amazon EFS</a></li>
+        <li><a href="https://docs.aws.amazon.com/efs/latest/ug/mounting-fs.html">Mounting file systems - Amazon EFS</a></li>
         <li><a href="https://hyron.co.jp/blog/awsamazonlinux2023%E3%81%A8rhel9-3%E3%82%92%E6%AF%94%E8%BC%83%E3%81%97%E3%81%A6%E3%81%BF%E3%81%9F">[AWS]AmazonLinux2023とRed Hat Enterprise Linux 9.3を比較してみた</a></li>
         <li><a href="https://www.nedia.ne.jp/blog/2023/08/01/21909">Amazon Linux 2023 を技術者が触ってみた</a></li>
       </ul>
@@ -552,17 +605,18 @@ cat /etc/logrotate.d/syslog</code></pre>
       <a href="#step-07">7. sshd_config</a>
       <a href="#step-08">8. cloud-init</a>
       <a href="#step-09">9. disk</a>
-      <a href="#step-10">10. swap</a>
-      <a href="#step-11">11. middleware</a>
-      <a href="#step-12">12. Postfix</a>
-      <a href="#step-13">13. Apache</a>
-      <a href="#step-14">14. basic commands</a>
-      <a href="#step-15">15. release update</a>
-      <a href="#step-16">16. rsyslog</a>
-      <a href="#step-17">17. cron</a>
-      <a href="#step-18">18. sudoers</a>
-      <a href="#step-19">19. logrotate</a>
-      <a href="#step-20">20. 作業後確認</a>
+      <a href="#step-10">10. Amazon EFS</a>
+      <a href="#step-11">11. swap</a>
+      <a href="#step-12">12. middleware</a>
+      <a href="#step-13">13. Postfix</a>
+      <a href="#step-14">14. Apache</a>
+      <a href="#step-15">15. basic commands</a>
+      <a href="#step-16">16. release update</a>
+      <a href="#step-17">17. rsyslog</a>
+      <a href="#step-18">18. cron</a>
+      <a href="#step-19">19. sudoers</a>
+      <a href="#step-20">20. logrotate</a>
+      <a href="#step-21">21. 作業後確認</a>
       <a href="#references">参考</a>
     </aside>
   </div>
