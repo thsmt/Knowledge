@@ -132,6 +132,72 @@
         </tbody>
       </table>
 
+      <h2 id="os-differences">OS差分</h2>
+      <p>OSのライフサイクル確認では、期限だけでなく、パッケージ管理、ログ、cron、SELinux、Python、暗号ポリシーなどの運用差分も確認します。</p>
+
+      <table class="lifecycle-table lifecycle-table-reference">
+        <colgroup>
+          <col style="width: 15%">
+          <col style="width: 20%">
+          <col style="width: 24%">
+          <col style="width: 21%">
+          <col style="width: 20%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>対象</th>
+            <th>位置付け</th>
+            <th>パッケージ管理 / リポジトリ</th>
+            <th>サービス / ログ / cron</th>
+            <th>移行・運用時の確認点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CentOS 7</td>
+            <td>RHEL 7互換の旧世代。既存環境の移行元として扱います。</td>
+            <td><code>yum</code>中心。Software CollectionsやEPELを併用している環境があります。DNFモジュールは前提にしません。</td>
+            <td><code>systemd</code>。ログは<code>rsyslog</code>と<code>/var/log/messages</code>前提の運用が多く、cronも標準的に利用します。</td>
+            <td>新規採用ではなく移行元として棚卸します。<code>ifconfig</code>、<code>netstat</code>、Python 2系、古いOpenSSL依存を確認します。</td>
+          </tr>
+          <tr>
+            <td>Red Hat Enterprise Linux 8</td>
+            <td>RHEL 8世代。RHEL 7からの移行先として利用されることが多い世代です。</td>
+            <td><code>dnf</code>標準、<code>yum</code>は互換コマンド。Application Streams / moduleで複数バージョンを選択します。</td>
+            <td><code>systemd</code>。<code>journald</code>と<code>rsyslog</code>を併用します。cronは利用可能です。</td>
+            <td>AppStreamの有効化、モジュール選択、NetworkManager前提、Python 3系への移行を確認します。公式情報: <a href="https://access.redhat.com/support/policy/updates/rhel-app-streams-life-cycle">Application Streams Life Cycle</a></td>
+          </tr>
+          <tr>
+            <td>Red Hat Enterprise Linux 9</td>
+            <td>RHEL 9世代。現在の新規構築候補として扱います。</td>
+            <td><code>dnf</code>標準。Application Streamsは継続しますが、RHEL 8よりモジュール依存は少なくなります。</td>
+            <td><code>systemd</code>。<code>journald</code>と<code>rsyslog</code>を併用します。cronは利用可能です。</td>
+            <td>SELinux enforcing、OpenSSL 3系、crypto-policies、SSH鍵・暗号方式、Python/Ruby/PHPなど標準ランタイムの差分を確認します。</td>
+          </tr>
+          <tr>
+            <td>Red Hat Enterprise Linux 10</td>
+            <td>RHEL 10世代。今後の新規導入候補として、利用製品の対応状況を先に確認します。</td>
+            <td><code>dnf</code>系の新世代を前提に確認します。RHEL 8/9の手順をそのまま流用せず、公式ドキュメントで差分を確認します。</td>
+            <td><code>systemd</code>中心。ログ、タイマー、サービス管理はsystemd前提で整理します。</td>
+            <td>監視エージェント、バックアップ製品、セキュリティ製品、ミドルウェア、アプリケーションランタイムの対応可否を先に確認します。</td>
+          </tr>
+          <tr>
+            <td>Amazon Linux 2</td>
+            <td>AWS標準の旧世代Amazon Linux。AL2023への移行元として扱います。</td>
+            <td><code>yum</code>中心。Amazon Linux Extrasで追加ランタイムやミドルウェアを有効化する運用が多いです。</td>
+            <td><code>systemd</code>。<code>rsyslog</code>とcron前提の運用が多いです。</td>
+            <td>AL2023へ移行する場合は、Extras廃止、パッケージ名、OpenSSL、Python、cron/rsyslogの差分を確認します。</td>
+          </tr>
+          <tr>
+            <td>Amazon Linux 2023</td>
+            <td>AL2後継のAWS向け世代。新規構築候補として扱います。</td>
+            <td><code>dnf</code>標準。バージョン固定リポジトリと<code>dnf upgrade --releasever=...</code>による決定的アップグレードを利用します。</td>
+            <td><code>systemd</code>。標準では<code>systemd-journald</code>とsystemd timer寄りです。必要に応じて<code>rsyslog</code>や<code>cronie</code>を追加します。</td>
+            <td>SELinuxはpermissive、Python 3系、OpenSSL 3系です。公式情報: <a href="https://docs.aws.amazon.com/linux/al2023/ug/compare-with-al2.html">AL2とAL2023の比較</a> / <a href="https://docs.aws.amazon.com/linux/al2023/ug/deterministic-upgrades.html">決定的アップグレード</a></td>
+          </tr>
+        </tbody>
+      </table>
+
       <h2 id="aws-services">AWSマネージドサービス</h2>
       <table class="lifecycle-table lifecycle-table-reference">
         <colgroup>
@@ -294,7 +360,7 @@
           </tr>
           <tr>
             <td>Operations</td>
-            <td>バックアップ取得、復旧手順、監視設定、通知先、切り戻し手順、作業後の正常性確認</td>
+            <td>バックアップ取得、復旧手順、監視設定、通知先、切り戻し手順、正常性確認</td>
           </tr>
         </tbody>
       </table>
@@ -304,6 +370,7 @@
       <h2>ページ内</h2>
       <a class="active" href="#policy">確認方針</a>
       <a href="#os">OS</a>
+      <a href="#os-differences">OS差分</a>
       <a href="#aws-services">AWSマネージドサービス</a>
       <a href="#middleware">ミドルウェア・エージェント</a>
       <a href="#checklist">確認チェックリスト</a>

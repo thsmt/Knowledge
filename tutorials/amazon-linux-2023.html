@@ -555,43 +555,6 @@ cat /etc/logrotate.d/syslog</code></pre>
         <pre><code>logrotate -d /etc/logrotate.conf</code></pre>
       </div>
 
-      <h2 id="step-21">21. 作業後確認</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>確認項目</th>
-            <th>コマンド</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>OS情報</td><td><code>cat /etc/os-release</code></td></tr>
-          <tr><td>SELinux</td><td><code>getenforce</code></td></tr>
-          <tr><td>ホスト名</td><td><code>hostnamectl</code></td></tr>
-          <tr><td>時刻同期</td><td><code>timedatectl</code></td></tr>
-          <tr><td>SSH</td><td><code>systemctl status sshd</code></td></tr>
-          <tr><td>Amazon EFS</td><td><code>df -Th</code></td></tr>
-          <tr><td>swap</td><td><code>swapon --show</code></td></tr>
-          <tr><td>Apache</td><td><code>systemctl status httpd</code></td></tr>
-          <tr><td>Postfix</td><td><code>systemctl status postfix</code></td></tr>
-          <tr><td>rsyslog</td><td><code>systemctl status rsyslog</code></td></tr>
-          <tr><td>cron</td><td><code>systemctl status crond</code></td></tr>
-          <tr><td>ログローテート</td><td><code>logrotate -d /etc/logrotate.conf</code></td></tr>
-        </tbody>
-      </table>
-
-      <h2 id="references">参考</h2>
-      <ul>
-        <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/compare-with-al2.html">Comparing AL2 and AL2023 - Amazon Linux 2023</a></li>
-        <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/package-management.html">Package management tool - Amazon Linux 2023</a></li>
-        <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/deterministic-upgrades.html">Deterministic upgrades through versioned repositories - Amazon Linux 2023</a></li>
-        <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/journald.html">systemd journal replaces rsyslog - Amazon Linux 2023</a></li>
-        <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/cron.html">systemd timers replace cron - Amazon Linux 2023</a></li>
-        <li><a href="https://docs.aws.amazon.com/linux/al2023/ug/enforcing-mode.html">Change to enforcing mode - Amazon Linux 2023</a></li>
-        <li><a href="https://docs.aws.amazon.com/efs/latest/ug/efs-mount-helper.html">Mounting EFS file systems using the EFS mount helper - Amazon EFS</a></li>
-        <li><a href="https://docs.aws.amazon.com/efs/latest/ug/mounting-fs.html">Mounting file systems - Amazon EFS</a></li>
-        <li><a href="https://hyron.co.jp/blog/awsamazonlinux2023%E3%81%A8rhel9-3%E3%82%92%E6%AF%94%E8%BC%83%E3%81%97%E3%81%A6%E3%81%BF%E3%81%9F">[AWS]AmazonLinux2023とRed Hat Enterprise Linux 9.3を比較してみた</a></li>
-        <li><a href="https://www.nedia.ne.jp/blog/2023/08/01/21909">Amazon Linux 2023 を技術者が触ってみた</a></li>
-      </ul>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
@@ -616,8 +579,6 @@ cat /etc/logrotate.d/syslog</code></pre>
       <a href="#step-18">18. cron</a>
       <a href="#step-19">19. sudoers</a>
       <a href="#step-20">20. logrotate</a>
-      <a href="#step-21">21. 作業後確認</a>
-      <a href="#references">参考</a>
     </aside>
   </div>
 

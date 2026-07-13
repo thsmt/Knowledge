@@ -138,6 +138,7 @@
         <strong>ℹ️ 情報</strong>
         <p>AD Connectorのサービスアカウントには、ユーザーとグループの読み取り権限が必要です。Seamless Domain JoinやWorkSpacesを使う場合は、ドメイン参加やコンピューターオブジェクト作成に関する権限も確認します。</p>
       </div>
+      <p>公式情報: <a href="https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ad_connector_getting_started.html">Getting started with AD Connector</a></p>
 
       <h2 id="register-directory">WorkSpacesディレクトリ登録</h2>
       <p>Directory Serviceで作成または接続したディレクトリを、Amazon WorkSpaces側で登録します。登録後に、利用サブネット、アクセス制御、セルフサービス権限、Web Accessを設定します。</p>
@@ -199,6 +200,7 @@
         <strong>ℹ️ 情報</strong>
         <p>現在のWorkSpaces Web Accessは、DCVベースのWindows / Linux WorkSpacesで利用できます。PCoIPベースのWorkSpacesにはリージョンや機能の制約があります。</p>
       </div>
+      <p>公式情報: <a href="https://docs.aws.amazon.com/workspaces/latest/userguide/amazon-workspaces-web-access.html">WorkSpaces Web Access</a></p>
 
       <h2 id="image-bundle">カスタムイメージ・バンドル</h2>
       <p>WorkSpaceにOS設定やアプリケーションを入れた後、同じ構成を再利用するためにカスタムイメージとカスタムバンドルを作成します。</p>
@@ -233,6 +235,7 @@
           </tr>
         </tbody>
       </table>
+      <p>公式情報: <a href="https://docs.aws.amazon.com/workspaces/latest/adminguide/create-custom-bundle.html">Create a custom WorkSpaces image and bundle for WorkSpaces Personal</a></p>
 
       <h2 id="cost-optimizer">Cost Optimizer</h2>
       <p>Cost Optimizer for Amazon WorkSpacesは、WorkSpacesの利用状況を分析し、利用実績に応じて時間課金または月額課金の適切なモードへ変換するAWS Solutionsです。</p>
@@ -249,6 +252,7 @@
         <strong>⚠️ 注意</strong>
         <p>Cost Optimizerのレポートが空になる場合、WorkSpacesの対象リージョン、CloudFormationパラメータ、実行タスクのログ、VPCエンドポイントの通信許可を確認します。VPC Interface Endpointを利用している環境では、ECSタスクやLambdaからWorkSpaces APIへ到達できるセキュリティグループ設定も確認します。</p>
       </div>
+      <p>公式情報: <a href="https://aws.amazon.com/jp/solutions/implementations/cost-optimizer-for-amazon-workspaces/">Cost Optimizer for Amazon WorkSpaces</a></p>
 
       <h2 id="troubleshooting">トラブルシュート</h2>
       <table>
@@ -310,14 +314,6 @@
         </tbody>
       </table>
 
-      <h2 id="references">参考</h2>
-      <ul>
-        <li><a href="https://catalog.us-east-1.prod.workshops.aws/workshops/ba8389fd-99a1-4010-a95e-d691a2c08311/ja-JP">AWS Workshop - Amazon WorkSpaces</a></li>
-        <li><a href="https://docs.aws.amazon.com/workspaces/latest/adminguide/create-custom-bundle.html">Create a custom WorkSpaces image and bundle for WorkSpaces Personal</a></li>
-        <li><a href="https://docs.aws.amazon.com/workspaces/latest/userguide/amazon-workspaces-web-access.html">WorkSpaces Web Access</a></li>
-        <li><a href="https://aws.amazon.com/jp/solutions/implementations/cost-optimizer-for-amazon-workspaces/">Cost Optimizer for Amazon WorkSpaces</a></li>
-        <li><a href="https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ad_connector_getting_started.html">Getting started with AD Connector</a></li>
-      </ul>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
@@ -332,7 +328,6 @@
       <a href="#cost-optimizer">Cost Optimizer</a>
       <a href="#troubleshooting">トラブルシュート</a>
       <a href="#checklist">チェックリスト</a>
-      <a href="#references">参考</a>
     </aside>
   </div>
   <script src="../assets/app.js"></script>

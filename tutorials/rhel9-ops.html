@@ -834,14 +834,6 @@ include /etc/logrotate.d
         <code>/etc/logrotate.d/</code> 配下にバックアップファイルを置くと、バックアップファイル内の記述もlogrotateの対象として読み込まれる可能性があります。退避ファイルは別ディレクトリ、またはlogrotateが読み込まない名前・場所で管理します。
       </div>
 
-      <h2 id="step-16">16. 作業後確認</h2>
-      <p>logrotateのdry runで、構文と対象ファイルを確認します。</p>
-      <div class="code">
-        <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
-        <pre><code>logrotate -d /etc/logrotate.conf</code></pre>
-      </div>
-
-      <p>サービス再起動を伴う設定は、ステータス確認、ログ確認、再ログイン、必要に応じてOS再起動後の確認まで実施します。</p>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
@@ -861,7 +853,6 @@ include /etc/logrotate.d
       <a href="#step-13">13. Apache</a>
       <a href="#step-14">14. commands</a>
       <a href="#step-15">15. logrotate</a>
-      <a href="#step-16">16. 確認</a>
     </aside>
   </div>
 
