@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>用語集・重要メモ | Documentation</title>
+  <meta name="description" content="AWS、IaC、Linux運用で頻出する用語と重要な確認事項をまとめたリファレンス">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../">
+      <img src="../assets/icon.jpg" alt="">
+      <span>Documentation</span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" type="button" title="テーマを切り替え" aria-label="テーマを切り替え">☀</button>
+      <nav class="nav" aria-label="Global navigation">
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <a href="https://github.com/thsmt"><span class="nav-icon" aria-hidden="true">▦</span>Repositories</a>
+        <a href="https://github.com/thsmt/Knowledge"><span class="nav-icon" aria-hidden="true">◆</span>GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="site-sidebar" class="sidebar" aria-label="Tutorial navigation">
+      <div class="sidebar-heading">
+        <h2>ページ一覧</h2>
+        <button class="icon-button sidebar-toggle sidebar-toggle-inline" type="button" aria-controls="site-sidebar" aria-expanded="true" title="ページ一覧を閉じる" aria-label="ページ一覧を閉じる">☰</button>
+      </div>
+      <a href="cloudformation.html">CloudFormation</a>
+      <a href="aws-cli.html">AWS CLI 特殊対応</a>
+      <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
+      <a href="amazon-workspaces.html">Amazon WorkSpaces</a>
+      <a href="amazon-ses.html">Amazon SES</a>
+      <a href="terraform.html">Terraform</a>
+      <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
+      <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
+      <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
+      <a href="zabbix-ops.html">Zabbix 6.0</a>
+      <a href="awx-ansible.html">AWX / Ansible</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
+      <a class="active" href="glossary.html">用語集・重要メモ</a>
+    </aside>
+
+    <main>
+      <div class="breadcrumb">
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <span>&gt;</span>
+        <span>トピック</span>
+      </div>
+
+      <h1>用語集・重要メモ</h1>
+      <p class="lead">AWS、IaC、Linux運用で頻出する用語と、作業前に確認する重要事項を整理します</p>
+
+      <h2 id="aws-iac">AWS・IaC</h2>
+      <table>
+        <thead><tr><th>用語</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td>Infrastructure as Code</td><td>インフラストラクチャの構成をコードで定義し、レビュー、再現、変更履歴管理を可能にする考え方</td></tr>
+          <tr><td>冪等性</td><td>同じ操作を複数回実行しても、最終状態が同じになる性質</td></tr>
+          <tr><td>変更セット</td><td>CloudFormationスタック更新前に、追加・変更・削除されるリソースを確認する仕組み</td></tr>
+          <tr><td>ドリフト</td><td>CloudFormationテンプレートの定義と、実際のAWSリソース設定との差分</td></tr>
+          <tr><td>結果整合性</td><td>変更直後は参照結果が揃わず、時間の経過後に整合する分散システムの特性</td></tr>
+          <tr><td>Blast Radius</td><td>変更や障害が影響する範囲</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="linux-packages">Linux・パッケージ管理</h2>
+      <table>
+        <thead><tr><th>用語</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td>BaseOS</td><td>OSの基礎機能を構成する主要パッケージ群</td></tr>
+          <tr><td>AppStream</td><td>OS本体とは異なるライフサイクルを持つことがある、言語・DB・Webサーバーなどのパッケージ群</td></tr>
+          <tr><td>Module Stream</td><td>同一ミドルウェアの複数メジャーバージョンから利用系列を選択する仕組み</td></tr>
+          <tr><td>Repository ID</td><td>パッケージの取得元を識別するリポジトリ名</td></tr>
+          <tr><td>EPEL</td><td>Fedora ProjectがRHEL互換環境向けに提供する追加パッケージリポジトリ</td></tr>
+          <tr><td>Remi Repository</td><td>RHEL互換環境向けに複数のPHP系列や関連パッケージを提供する外部リポジトリ</td></tr>
+          <tr><td>Backport</td><td>新しいバージョンの修正を、古いバージョンの基盤へ取り込む保守方法</td></tr>
+          <tr><td>EOL / EOS</td><td>製品・バージョンの保守またはサポートが終了する時点</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="operations">運用</h2>
+      <table>
+        <thead><tr><th>用語</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td>Maintenance Window</td><td>変更作業や定期処理を実施する時間帯</td></tr>
+          <tr><td>Rollback</td><td>変更後に問題が発生した場合、変更前の状態へ戻す操作</td></tr>
+          <tr><td>Evidence</td><td>作業対象、実行内容、変更前後の状態を示す記録</td></tr>
+          <tr><td>RTO</td><td>障害発生後、サービスを復旧させるまでの目標時間</td></tr>
+          <tr><td>RPO</td><td>障害時に許容できるデータ損失時間</td></tr>
+          <tr><td>切り分け</td><td>症状をレイヤーごとに確認し、原因範囲を段階的に限定する作業</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="important-notes">重要メモ</h2>
+      <ul>
+        <li>更新前にパッケージのバージョン、導入元リポジトリ、サポート期限を確認</li>
+        <li>アップストリームとOSベンダーではサポート期限が異なるため、実際の導入元を基準に判断</li>
+        <li>変更前に対象アカウント、リージョン、リソースID、依存関係を確認</li>
+        <li>変更と切り戻しは同じ粒度で準備し、作業後に設定値とサービス状態を比較</li>
+        <li>パスワード、アクセスキー、秘密鍵はコマンド履歴、Git、スクリーンショットへ残さない</li>
+      </ul>
+
+      <div class="notice notice-warning">
+        <strong>⚠️ 注意</strong>
+        <p>外部リポジトリを複数混在させると、依存関係の競合や意図しないパッケージ置換が発生しやすくなります</p>
+        <p>導入前にリポジトリ優先度、対象パッケージ、更新経路、切り戻し方法を確認します</p>
+      </div>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <h2>ページ内</h2>
+      <a class="active" href="#aws-iac">AWS・IaC</a>
+      <a href="#linux-packages">Linux・パッケージ管理</a>
+      <a href="#operations">運用</a>
+      <a href="#important-notes">重要メモ</a>
+    </aside>
+  </div>
+
+  <script src="../assets/app.js"></script>
+</body>
+</html>

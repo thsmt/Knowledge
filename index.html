@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge</title>
+  <title>Documentation</title>
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="./">
-      <img src="assets/icon.jpg" alt="Knowledge icon">
-      <span>Knowledge</span>
+      <img src="assets/icon.jpg" alt="Documentation icon">
+      <span>Documentation</span>
     </a>
     <div class="header-actions">
       <button class="icon-button theme-toggle" type="button" title="テーマを切り替え" aria-label="テーマを切り替え">☀</button>
       <nav class="nav" aria-label="Global navigation">
-        <a href="./">Home</a>
-        <a href="https://github.com/thsmt">Repositories</a>
-        <a href="https://github.com/thsmt/Knowledge">GitHub</a>
+        <a href="./"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <a href="https://github.com/thsmt"><span class="nav-icon" aria-hidden="true">▦</span>Repositories</a>
+        <a href="https://github.com/thsmt/Knowledge"><span class="nav-icon" aria-hidden="true">◆</span>GitHub</a>
       </nav>
     </div>
   </header>
@@ -41,24 +41,18 @@
       <a href="tutorials/zabbix-ops.html">Zabbix 6.0</a>
       <a href="tutorials/awx-ansible.html">AWX / Ansible</a>
       <a href="tutorials/eol.html">EOL / ライフサイクル一覧表</a>
+      <a href="tutorials/glossary.html">用語集・重要メモ</a>
     </aside>
 
     <main class="content">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="./">Home</a>
-        <span>手順一覧</span>
+        <a href="./"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <span>トピック</span>
       </nav>
 
-      <h1>Knowledge</h1>
-      <p class="lead">CloudFormation、AWS CLI、Terraform、AWX / Ansible など、クラウドエンジニアの実務で使う手順を横断的に整理するためのドキュメントサイトです</p>
-      <p>各GitHubリポジトリには構成図、CloudFormationテンプレート、パラメータ例を置き、このサイトにはリポジトリをまたいで使う運用手順や確認観点をまとめます</p>
+      <h1>Documentation</h1>
 
-      <div class="callout">
-        <strong>📍 運用方針</strong>
-        <p>リポジトリは実装本体、Knowledge は横断手順集として分けます。変更作業、障害時の確認、ツール操作の手順を中心に整理します</p>
-      </div>
-
-      <h2 id="guides">手順一覧</h2>
+      <h2 id="guides">トピック</h2>
       <section class="card-grid" aria-label="Guide list">
         <article class="card">
           <strong><a href="tutorials/cloudformation.html">CloudFormation 運用手順集</a></strong>
@@ -112,12 +106,16 @@
           <strong><a href="tutorials/eol.html">EOL / ライフサイクル一覧表</a></strong>
           <p>OS、AWSサービス、ミドルウェア、エージェントのサポート期限と確認リンクを整理します</p>
         </article>
+        <article class="card">
+          <strong><a href="tutorials/glossary.html">用語集・重要メモ</a></strong>
+          <p>AWS、IaC、Linux運用で頻出する用語と、作業時に忘れたくない確認事項を整理します</p>
+        </article>
       </section>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
       <h2>ページ内</h2>
-      <a class="active" href="#guides">手順一覧</a>
+      <a class="active" href="#guides">トピック</a>
     </aside>
   </div>
   <script src="assets/app.js"></script>

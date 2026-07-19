@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EOL / ライフサイクル一覧表 | Knowledge</title>
+  <title>EOL / ライフサイクル一覧表 | Documentation</title>
   <meta name="description" content="EOL and lifecycle reference for OS, AWS services, middleware, and agents.">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
@@ -11,15 +11,16 @@
   <header class="topbar">
     <a class="brand" href="../">
       <img src="../assets/icon.jpg" alt="">
-      <span>Knowledge</span>
+      <span>Documentation</span>
     </a>
     <div class="header-actions">
       <button class="icon-button theme-toggle" type="button" title="テーマを切り替え" aria-label="テーマを切り替え">☀</button>
       <nav class="nav" aria-label="Global navigation">
-      <a href="../">Home</a>
-      <a href="https://github.com/thsmt">Repositories</a>
-      <a href="https://github.com/thsmt/Knowledge">GitHub</a>
+      <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+      <a href="https://github.com/thsmt"><span class="nav-icon" aria-hidden="true">▦</span>Repositories</a>
+      <a href="https://github.com/thsmt/Knowledge"><span class="nav-icon" aria-hidden="true">◆</span>GitHub</a>
     </nav>
+    </div>
   </header>
 
   <div class="layout">
@@ -41,13 +42,14 @@
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
       <a class="active" href="eol.html">EOL / ライフサイクル一覧表</a>
+      <a href="glossary.html">用語集・重要メモ</a>
     </aside>
 
     <main>
       <div class="breadcrumb">
-        <a href="../">Home</a>
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
         <span>&gt;</span>
-        <span>手順一覧</span>
+        <span>トピック</span>
       </div>
 
       <h1>EOL / ライフサイクル一覧表</h1>
@@ -60,6 +62,65 @@
         <strong>⚠️ 注意</strong>
         EOLやサポート期限は変更される可能性があるため、作業前に公式ドキュメントを確認します
       </div>
+
+      <h2 id="package-origin">パッケージと導入元の確認</h2>
+      <p>サポート期限を判断する前に、サーバーへ導入されているバージョンとリポジトリを確認します</p>
+
+      <h3>OSと有効なリポジトリ</h3>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy">Copy</button></div>
+        <pre><code>cat /etc/os-release
+dnf repolist --enabled</code></pre>
+      </div>
+
+      <h3>パッケージのバージョンと導入元</h3>
+      <div class="code">
+        <div class="code-header"><span>root shell</span><button class="copy">Copy</button></div>
+        <pre><code>PACKAGE=&lt;PACKAGE_NAME&gt;
+
+rpm -q "$PACKAGE"
+dnf list --installed "$PACKAGE"
+dnf info "$PACKAGE"
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{arch} | %{repoid}' "$PACKAGE"
+rpm -q --qf '%{NAME} %{VERSION}-%{RELEASE} | Vendor: %{VENDOR} | Packager: %{PACKAGER}\n' "$PACKAGE"</code></pre>
+      </div>
+
+      <div class="notice notice-info">
+        <strong>ℹ️ 情報</strong>
+        <code>dnf list --installed</code>のリポジトリ欄は<code>@rhel-9-for-x86_64-appstream-rpms</code>や<code>@remi-modular</code>のように表示されます
+        <br><code>dnf repoquery</code>を利用できない場合は<code>dnf install -y dnf-plugins-core</code>で追加します
+      </div>
+
+      <details class="example-details">
+        <summary>ミドルウェア別の実行例</summary>
+        <p>以下は表示形式の例です<br>バージョン、リリース番号、アーキテクチャ、リポジトリIDは環境によって異なります</p>
+        <div class="code">
+          <div class="code-header"><span>root shell</span><button class="copy">Copy</button></div>
+          <pre><code># Red Hat Application StreamsのPHP
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{repoid}' php
+# php 8.0.x-x.el9 | rhel-9-for-x86_64-appstream-rpms
+
+# Remi RepositoryのPHP
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{repoid}' php
+# php 8.2.x-x.el9.remi | remi-modular
+
+# EPELのhtop
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{repoid}' htop
+# htop 3.x-x.el9 | epel
+
+# PostgreSQL Global Development GroupのPostgreSQL
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{repoid}' postgresql16-server
+# postgresql16-server 16.x-xPGDG.rhel9 | pgdg16
+
+# Zabbix公式リポジトリのAgent 2
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{repoid}' zabbix-agent2
+# zabbix-agent2 6.0.x-x.el9 | zabbix
+
+# NGINX公式リポジトリ
+dnf repoquery --installed --qf '%{name} %{version}-%{release} | %{repoid}' nginx
+# nginx 1.x.x-x.el9.ngx | nginx-stable</code></pre>
+        </div>
+      </details>
 
       <h2 id="os">OS</h2>
       <table class="lifecycle-table lifecycle-table-os">
@@ -394,64 +455,137 @@
         </tbody>
       </table>
 
+      <h2 id="external-repositories">主な外部リポジトリ</h2>
+      <table class="lifecycle-table lifecycle-table-reference">
+        <colgroup>
+          <col style="width: 18%">
+          <col style="width: 25%">
+          <col style="width: 39%">
+          <col style="width: 18%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>リポジトリ</th>
+            <th>主な用途</th>
+            <th>期限の考え方</th>
+            <th>公式情報</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Remi Repository</td>
+            <td>PHP、PECL拡張、関連ライブラリ</td>
+            <td>Remiから導入してもPHP本体のサポート期限は延長されない<br>PHP 8.2は2026/12/31、8.3は2027/12/31、8.4は2028/12/31、8.5は2029/12/31にSecurity Support終了予定</td>
+            <td><a href="https://rpms.remirepo.net/wizard/">Remi Repository Wizard</a><br><a href="https://www.php.net/supported-versions.php">PHP Supported Versions</a></td>
+          </tr>
+          <tr>
+            <td>EPEL</td>
+            <td>RHEL標準に含まれない追加パッケージ</td>
+            <td>対応するRHELメジャーバージョンの期間を基準に判断<br>個別パッケージは先に廃止されることがあるため、パッケージの状態も確認</td>
+            <td><a href="https://docs.fedoraproject.org/en-US/epel/">EPEL Documentation</a></td>
+          </tr>
+          <tr>
+            <td>PostgreSQL Global Development Group</td>
+            <td>PostgreSQL Server、Client、拡張機能</td>
+            <td>各メジャーバージョンは5年間サポート<br>14は2026/11/12、15は2027/11/11、16は2028/11/09、17は2029/11/08、18は2030/11/14に終了予定</td>
+            <td><a href="https://www.postgresql.org/support/versioning/">Versioning Policy</a></td>
+          </tr>
+          <tr>
+            <td>MariaDB Repository</td>
+            <td>MariaDB Server、Client、関連ツール</td>
+            <td>Community Serverの終了予定は10.6が2026/07/06、10.11が2028/02/16、11.4が2029/05/29、11.8が2028/06/04</td>
+            <td><a href="https://mariadb.org/about/">MariaDB Maintenance Policy</a></td>
+          </tr>
+          <tr>
+            <td>NGINX Repository</td>
+            <td>NGINX Mainline / Stable</td>
+            <td>提供中ブランチとパッケージ公開状況を確認<br>OS標準版とは更新経路を分けて管理</td>
+            <td><a href="https://nginx.org/en/linux_packages.html">NGINX Linux Packages</a></td>
+          </tr>
+          <tr>
+            <td>Zabbix Repository</td>
+            <td>Zabbix Server、Proxy、Agent、Agent 2</td>
+            <td>LTSとStandard Releaseで保守期間が異なる<br>Server、Proxy、Agentの組み合わせと対象OS対応を確認</td>
+            <td><a href="https://www.zabbix.com/life_cycle_and_release_policy">Lifecycle and Release Policy</a></td>
+          </tr>
+        </tbody>
+      </table>
+
       <h2 id="middleware">ミドルウェア・エージェント</h2>
       <table class="lifecycle-table lifecycle-table-reference">
         <colgroup>
+          <col style="width: 22%">
           <col style="width: 30%">
-          <col style="width: 46%">
-          <col style="width: 24%">
+          <col style="width: 30%">
+          <col style="width: 18%">
         </colgroup>
         <thead>
           <tr>
             <th>対象</th>
-            <th>確認するもの</th>
+            <th>導入元の確認</th>
+            <th>期限の判断</th>
             <th>公式情報</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Postfix / OpenSSH / OpenSSL</td>
-            <td>OS標準リポジトリ由来か、外部リポジトリ由来か。RHEL系ではRHEL本体とApplication Streamsの期限を分けて確認します</td>
+            <td>OS標準リポジトリ、外部ビルド、コンテナイメージ</td>
+            <td>OS標準版はOSベンダーの保守期限を適用<br>外部ビルドは配布元とアップストリームを確認</td>
             <td><a href="https://access.redhat.com/support/policy/updates/errata">RHEL Life Cycle</a></td>
           </tr>
           <tr>
             <td>Apache HTTP Server / NGINX</td>
-            <td>OS同梱版、Application Streams、外部リポジトリ、コンテナイメージのどれを使っているかを確認します</td>
-            <td><a href="https://access.redhat.com/support/policy/updates/rhel-app-streams-life-cycle">RHEL Application Streams</a></td>
+            <td>OS標準、Application Streams、NGINX公式、コンテナイメージ</td>
+            <td>OS標準版はOSまたはApplication Stream、NGINX公式版は提供ブランチと公開状況を確認</td>
+            <td><a href="https://access.redhat.com/support/policy/updates/rhel-app-streams-life-cycle">RHEL Application Streams</a><br><a href="https://nginx.org/en/linux_packages.html">NGINX Packages</a></td>
           </tr>
           <tr>
             <td>PHP</td>
-            <td>PHP本体のActive Support / Security Support、Webアプリケーションの対応バージョン、利用モジュール互換性</td>
+            <td>RHEL Application Streams、Remi、コンテナイメージ</td>
+            <td>RHEL標準版はApplication Stream期限、Remi版はPHP本体のSecurity Support終了日を適用</td>
             <td><a href="https://www.php.net/supported-versions.php">PHP supported versions</a></td>
           </tr>
           <tr>
+            <td>PostgreSQL / MariaDB</td>
+            <td>OS標準、Application Streams、PGDG、MariaDB公式、コンテナイメージ</td>
+            <td>外部リポジトリ版は各メジャーバージョンの公式期限を適用<br>OS標準版とは保守元が異なるため分離して判断</td>
+            <td><a href="https://www.postgresql.org/support/versioning/">PostgreSQL</a><br><a href="https://mariadb.org/about/">MariaDB</a></td>
+          </tr>
+          <tr>
             <td>Python</td>
-            <td>Python本体のセキュリティサポート、OS同梱版、仮想環境、Lambdaランタイム、pip依存ライブラリ</td>
+            <td>OS標準、仮想環境、コンテナ、Lambdaランタイム</td>
+            <td>OS標準版、Python本体、Lambdaランタイム、pip依存ライブラリを別々に確認</td>
             <td><a href="https://devguide.python.org/versions/">Python versions</a></td>
           </tr>
           <tr>
             <td>Node.js</td>
-            <td>LTS / Maintenance / End-of-life、フロントエンドビルド環境、Lambdaランタイム、npm依存ライブラリ</td>
+            <td>OS標準、NodeSource、nvm、コンテナ、Lambdaランタイム</td>
+            <td>Node.js本体のLTS / Maintenance / EOLと、Lambdaランタイム、npm依存ライブラリを確認</td>
             <td><a href="https://nodejs.org/en/about/previous-releases">Node.js releases</a></td>
           </tr>
           <tr>
             <td>AWS Systems Manager Agent</td>
-            <td>SSM Agentバージョン、Run Command / Session Manager利用可否、OS対応状況、エージェント自動更新設定</td>
+            <td>AWS提供パッケージまたはAMI同梱版</td>
+            <td>導入バージョン、対象OS対応、Run Command / Session Manager利用可否、自動更新設定を確認</td>
             <td><a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/ssm-agent.html">Working with SSM Agent</a></td>
           </tr>
           <tr>
             <td>Amazon CloudWatch Agent</td>
-            <td>CloudWatch Agentバージョン、メトリクス/ログ/トレース収集設定、Windows / Linuxの設定ファイル差分</td>
+            <td>AWS提供パッケージ、Systems Manager Distributor</td>
+            <td>導入バージョン、対象OS対応、メトリクス/ログ/トレース設定の互換性を確認</td>
             <td><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html">CloudWatch Agent</a></td>
           </tr>
           <tr>
             <td>Zabbix Server / Proxy / Agent</td>
-            <td>Zabbix本体バージョン、LTS / Standard、監視対象OS対応、Agent 2対応、Server / Proxy / Agentの組み合わせ</td>
+            <td>Zabbix公式、OS標準、コンテナイメージ</td>
+            <td>LTS / Standard、対象OS、Agent 2対応、Server / Proxy / Agentの組み合わせを確認</td>
             <td><a href="https://www.zabbix.com/life_cycle_and_release_policy">Zabbix Lifecycle and Release Policy</a></td>
           </tr>
           <tr>
             <td>Trend Micro Workload Security / Deep Security Agent</td>
-            <td>Agentバージョン、OS対応、LTS期限、管理コンソールとの互換性、カーネル更新時の影響</td>
+            <td>Trend Micro配布パッケージ</td>
+            <td>Agent、対象OS、LTS、管理コンソールとの互換性、カーネル更新時の影響を確認</td>
             <td><a href="https://help.deepsecurity.trendmicro.com/">Trend Micro Deep Security Help Center</a></td>
           </tr>
         </tbody>
@@ -461,10 +595,12 @@
 
     <aside class="toc" aria-label="Table of contents">
       <h2>ページ内</h2>
-      <a class="active" href="#os">OS</a>
+      <a class="active" href="#package-origin">パッケージと導入元</a>
+      <a href="#os">OS</a>
       <a href="#os-differences">Linux世代差分</a>
       <a href="#rhel-appstream">RHEL Application Streams</a>
       <a href="#aws-services">AWSマネージドサービス</a>
+      <a href="#external-repositories">外部リポジトリ</a>
       <a href="#middleware">ミドルウェア・エージェント</a>
     </aside>
   </div>

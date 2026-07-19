@@ -136,6 +136,18 @@ a:hover {
   font-weight: 650;
 }
 
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-icon {
+  color: var(--accent-strong);
+  font-size: 15px;
+  line-height: 1;
+}
+
 .layout {
   display: grid;
   grid-template-columns: minmax(170px, 220px) minmax(0, 900px) minmax(180px, 240px);
@@ -358,10 +370,29 @@ li {
 }
 
 .card {
+  position: relative;
   padding: 16px;
   background: var(--card-bg);
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.card::before {
+  content: "▤";
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--accent-strong);
+  background: var(--panel);
+  font-size: 14px;
+}
+
+.card:hover {
+  border-color: var(--accent);
 }
 
 .card strong {

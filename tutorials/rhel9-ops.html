@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>[構築] Red Hat Enterprise Linux 9 | Knowledge</title>
+  <title>[構築] Red Hat Enterprise Linux 9 | Documentation</title>
   <meta name="description" content="Red Hat Enterprise Linux 9 manual build guide for AWS EC2.">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="../"><img src="../assets/icon.jpg" alt=""><span>Knowledge</span></a>
+    <a class="brand" href="../"><img src="../assets/icon.jpg" alt=""><span>Documentation</span></a>
     <div class="header-actions">
       <button class="icon-button theme-toggle" type="button" title="テーマを切り替え" aria-label="テーマを切り替え">☀</button>
       <nav class="nav" aria-label="Global navigation">
-      <a href="../">Home</a>
-      <a href="https://github.com/thsmt">Repositories</a>
-      <a href="https://github.com/thsmt/Knowledge">GitHub</a>
+      <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+      <a href="https://github.com/thsmt"><span class="nav-icon" aria-hidden="true">▦</span>Repositories</a>
+      <a href="https://github.com/thsmt/Knowledge"><span class="nav-icon" aria-hidden="true">◆</span>GitHub</a>
     </nav>
+    </div>
   </header>
 
   <div class="layout">
@@ -38,10 +39,11 @@
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
       <a href="eol.html">EOL / ライフサイクル一覧表</a>
+      <a href="glossary.html">用語集・重要メモ</a>
     </aside>
 
     <main>
-      <div class="breadcrumb"><a href="../">Home</a><span>&gt;</span><span>手順一覧</span></div>
+      <div class="breadcrumb"><a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a><span>&gt;</span><span>トピック</span></div>
       <h1>[構築] Red Hat Enterprise Linux 9</h1>
       <p class="lead">AWS EC2上のRed Hat Enterprise Linux 9を手動構築する際の初期設定、SSH、cloud-init、swap、ミドルウェア、Apache、Postfix、logrotateを整理します。root権限で実行する前提のため、コマンド例では <code>sudo</code> を省略しています</p>
 
@@ -52,7 +54,6 @@
 
       <h2 id="step-01">1. 起動時の確認</h2>
       <p>Amazon EC2はLinuxインスタンスでRSAとED25519をサポートしています。この手順の対象環境では、組織の暗号鍵ポリシーでRSAキーペアを許可していないため、<code>ED25519</code>キーペアを使用します</p>
-      <p><a href="https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/create-key-pairs.html">Amazon EC2キーペアの作成</a></p>
       <table>
         <thead><tr><th>確認項目</th><th>内容</th></tr></thead>
         <tbody>
@@ -101,7 +102,6 @@ cp -pi /etc/selinux/config /root/config-backup/selinux/config.bak</code></pre>
         <pre><code>getenforce</code></pre>
       </div>
 
-      <p>SELinuxのモードは <a href="https://www.itmedia.co.jp/enterprise/articles/0704/02/news021.html">SELinuxのモード解説</a> も確認します</p>
 
       <h2 id="step-03">3. subscription-managerの無効化</h2>
       <p>AWS Marketplaceの従量課金（PAYG）RHEL AMIは、Red Hat Update Infrastructure（RHUI）から更新パッケージを取得し、Red Hat Subscription Management（RHSM）への登録を必要としません。この構成では<code>subscription-manager</code>プラグインを無効化します</p>
@@ -130,7 +130,6 @@ enabled=0</code></pre>
         <p>PAYG RHEL AMIで有効のままにすると、<code>This system is not registered with an entitlement server.</code>という未登録警告がDNF実行時に表示されます。RHUIからの更新は継続できますが、作業ログへ不要な警告が混在し、実際のリポジトリエラーを判別しづらくなります</p>
         <p>BYOS、RHEL Gold Image、Red Hat Satellite、Red Hat CDNへ登録してサブスクリプションを管理する環境では、登録状態とリポジトリ制御に使用するため無効化しません</p>
       </div>
-      <p><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/deploying_rhel_9_on_amazon_web_services/assembly_deploying-a-virtual-machine-on-aws_cloud-content-aws">Red Hat Enterprise Linux 9をAWSへデプロイする手順</a></p>
 
       <h2 id="step-04">4. ログインプロファイル設定</h2>
       <p>操作履歴に時刻を残し、調査時に作業順序を追いやすくするため、<code>/etc/profile</code> と新規ユーザー用の雛形を変更します</p>
