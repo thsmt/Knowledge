@@ -1,6 +1,6 @@
 # Knowledge
 
-AWS / Infrastructure / IaC / Operations に関する横断的なナレッジサイトです。
+AWS / Infrastructure / IaC / Operations に関する横断的なナレッジサイトです
 
 ## 公開URL
 
@@ -20,3 +20,9 @@ https://thsmt.github.io/Knowledge/
 - AWX / Ansible 手順の整理
 - EOL / ライフサイクル一覧表の整理
 - GitHub Pages の公開確認
+
+## 執筆ルール
+
+- 表記、見出し、情報パネルのルールは [CONTRIBUTING.md](CONTRIBUTING.md) を参照
+- 文末の句点や表記ゆれは `powershell -File scripts/check-writing-style.ps1` で確認
+- ページ内リンクは `powershell -File scripts/check-page-links.ps1` で確認

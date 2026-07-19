@@ -53,20 +53,20 @@
       <h1>CloudFormation 運用手順集</h1>
 
       <p class="lead">
-        CloudFormationテンプレートの書き方だけでなく、コンソール、S3 URL、Git sync、AWS CLIなどのデプロイ方法を使い分け、変更セット、ロールバック、削除、ドリフト検出までを運用手順として整理します。
+        CloudFormationテンプレートの書き方だけでなく、コンソール、S3 URL、Git sync、AWS CLIなどのデプロイ方法を使い分け、変更セット、ロールバック、削除、ドリフト検出までを運用手順として整理します
       </p>
 
       <div class="notice">
         <strong>📍 目的</strong>
-        本ページでは、各リポジトリ固有のテンプレート説明ではなく、CloudFormationを安全に扱うための共通手順、デプロイ方法、確認観点をまとめます。
+        本ページでは、各リポジトリ固有のテンプレート説明ではなく、CloudFormationを安全に扱うための共通手順、デプロイ方法、確認観点をまとめます
       </div>
 
       <h2 id="policy">基本方針</h2>
       <ul>
-        <li>テンプレートはGitで管理し、環境差分はParametersとパラメータファイルに分離します。</li>
-        <li>機密値はテンプレートやGitに含めず、NoEcho、Secrets Manager、SSM Parameter Storeを検討します。</li>
-        <li>本番更新前は変更セットを作成し、作成・変更・削除・置換されるリソースを確認します。</li>
-        <li>スタック削除前は依存リソース、保持すべきデータ、削除保護、課金影響を確認します。</li>
+        <li>テンプレートはGitで管理し、環境差分はParametersとパラメータファイルに分離します</li>
+        <li>機密値はテンプレートやGitに含めず、NoEcho、Secrets Manager、SSM Parameter Storeを検討します</li>
+        <li>本番更新前は変更セットを作成し、作成・変更・削除・置換されるリソースを確認します</li>
+        <li>スタック削除前は依存リソース、保持すべきデータ、削除保護、課金影響を確認します</li>
       </ul>
 
       <h2 id="deploy-methods">デプロイ方法の使い分け</h2>
@@ -81,28 +81,28 @@
         <tbody>
           <tr>
             <td>テンプレートファイルのアップロード</td>
-            <td>手元のYAML/JSONをすぐに試す検証作業。</td>
-            <td>コンソールがテンプレートをS3へアップロードします。正式版はGitに残します。</td>
+            <td>手元のYAML/JSONをすぐに試す検証作業</td>
+            <td>コンソールがテンプレートをS3へアップロードします。正式版はGitに残します</td>
           </tr>
           <tr>
             <td>Amazon S3 URL</td>
-            <td>同じテンプレートを複数回利用する作業、共有されたテンプレートを使う作業。</td>
-            <td>事前にS3へテンプレートを配置し、読み取り可能なURLを指定します。</td>
+            <td>同じテンプレートを複数回利用する作業、共有されたテンプレートを使う作業</td>
+            <td>事前にS3へテンプレートを配置し、読み取り可能なURLを指定します</td>
           </tr>
           <tr>
             <td>Git から同期</td>
-            <td>GitのPull Request、履歴、レビューを使ってスタックを継続更新したい場合。</td>
-            <td>GitHub接続、リポジトリ、ブランチ、デプロイファイル、テンプレートパス、IAMロールを準備します。</td>
+            <td>GitのPull Request、履歴、レビューを使ってスタックを継続更新したい場合</td>
+            <td>GitHub接続、リポジトリ、ブランチ、デプロイファイル、テンプレートパス、IAMロールを準備します</td>
           </tr>
           <tr>
             <td>Infrastructure Composer</td>
-            <td>構成を視覚的に整理し、初期テンプレートを作る場合。</td>
-            <td>継続運用では、出力したテンプレートをGitにコミットしてレビューする流れに寄せます。</td>
+            <td>構成を視覚的に整理し、初期テンプレートを作る場合</td>
+            <td>継続運用では、出力したテンプレートをGitにコミットしてレビューする流れに寄せます</td>
           </tr>
           <tr>
             <td>AWS CLI</td>
-            <td>手順を再現したい場合、パラメータファイル込みで定型化したい場合。</td>
-            <td>実行アカウント、リージョン、IAM権限、capabilitiesの指定を事前に確認します。</td>
+            <td>手順を再現したい場合、パラメータファイル込みで定型化したい場合</td>
+            <td>実行アカウント、リージョン、IAM権限、capabilitiesの指定を事前に確認します</td>
           </tr>
         </tbody>
       </table>
@@ -119,25 +119,25 @@
         <tbody>
           <tr>
             <td>新しいリソースを使用（標準）</td>
-            <td>テンプレートに定義したAWSリソースをCloudFormationで新規作成します。</td>
-            <td>通常の新規デプロイ、検証環境作成、リポジトリのテンプレート確認。</td>
+            <td>テンプレートに定義したAWSリソースをCloudFormationで新規作成します</td>
+            <td>通常の新規デプロイ、検証環境作成、リポジトリのテンプレート確認</td>
           </tr>
           <tr>
             <td>既存のリソースを使用（リソースをインポート）</td>
-            <td>すでに存在するAWSリソースを、CloudFormationスタックの管理対象へ取り込みます。</td>
-            <td>手動作成リソースをIaC管理へ移行したい場合。通常の新規作成では使いません。</td>
+            <td>すでに存在するAWSリソースを、CloudFormationスタックの管理対象へ取り込みます</td>
+            <td>手動作成リソースをIaC管理へ移行したい場合。通常の新規作成では使いません</td>
           </tr>
         </tbody>
       </table>
 
       <div class="notice">
         <strong>ℹ️ 情報</strong>
-        リソースインポートでは、既存リソースを表すテンプレートと識別子の指定が必要です。既存リソースを削除して作り直す操作ではありません。
+        リソースインポートでは、既存リソースを表すテンプレートと識別子の指定が必要です。既存リソースを削除して作り直す操作ではありません
       </div>
 
       <h2 id="validate">テンプレート検証</h2>
       <p>
-        構文レベルの確認として、<code>validate-template</code> を実行します。リソース間の依存関係やIAM権限までは完全には検出できないため、変更セットや実デプロイ前確認と組み合わせます。
+        構文レベルの確認として、<code>validate-template</code> を実行します。リソース間の依存関係やIAM権限までは完全には検出できないため、変更セットや実デプロイ前確認と組み合わせます
       </p>
 
       <div class="code">
@@ -160,43 +160,43 @@
         <tbody>
           <tr>
             <td>環境差分</td>
-            <td>ProjectName、EnvironmentName、CIDR、AZ、InstanceTypeなどをパラメータ化します。</td>
+            <td>ProjectName、EnvironmentName、CIDR、AZ、InstanceTypeなどをパラメータ化します</td>
           </tr>
           <tr>
             <td>入力制約</td>
-            <td>AllowedValues、AllowedPattern、MinLength、MaxLengthを使い、誤入力を減らします。</td>
+            <td>AllowedValues、AllowedPattern、MinLength、MaxLengthを使い、誤入力を減らします</td>
           </tr>
           <tr>
             <td>機密値</td>
-            <td>DBパスワードなどはNoEchoを設定します。ただしNoEchoだけで完全な秘匿にはならないため、Secrets Managerも検討します。</td>
+            <td>DBパスワードなどはNoEchoを設定します。ただしNoEchoだけで完全な秘匿にはならないため、Secrets Managerも検討します</td>
           </tr>
           <tr>
             <td>命名</td>
-            <td>リソース名はProjectNameとEnvironmentNameを組み合わせ、長さ制限に注意します。</td>
+            <td>リソース名はProjectNameとEnvironmentNameを組み合わせ、長さ制限に注意します</td>
           </tr>
         </tbody>
       </table>
 
       <h2 id="upload-file">テンプレートファイルのアップロード</h2>
       <ol>
-        <li>CloudFormationコンソールで <strong>スタックの作成</strong> を選択します。</li>
-        <li><strong>新しいリソースを使用（標準）</strong> を選択します。</li>
-        <li><strong>既存のテンプレートを選択</strong> を選び、テンプレートソースで <strong>テンプレートファイルのアップロード</strong> を選択します。</li>
-        <li>ローカルのYAMLまたはJSONファイルを選択します。</li>
-        <li>CloudFormationがテンプレートをS3へアップロードし、スタック作成画面に進みます。</li>
+        <li>CloudFormationコンソールで <strong>スタックの作成</strong> を選択します</li>
+        <li><strong>新しいリソースを使用（標準）</strong> を選択します</li>
+        <li><strong>既存のテンプレートを選択</strong> を選び、テンプレートソースで <strong>テンプレートファイルのアップロード</strong> を選択します</li>
+        <li>ローカルのYAMLまたはJSONファイルを選択します</li>
+        <li>CloudFormationがテンプレートをS3へアップロードし、スタック作成画面に進みます</li>
       </ol>
 
       <div class="notice">
         <strong>📍 使いどころ</strong>
-        検証や一時確認では手軽です。一方で、アップロードしたファイルだけでは変更履歴が残りにくいため、最終版はGitリポジトリにコミットします。
+        検証や一時確認では手軽です。一方で、アップロードしたファイルだけでは変更履歴が残りにくいため、最終版はGitリポジトリにコミットします
       </div>
 
       <h2 id="s3-url">Amazon S3 URLで作成</h2>
       <p>
-        S3 URLを使う場合は、事前にテンプレートファイルをS3へ配置し、そのテンプレートを読み取れるURLをCloudFormationに指定します。
+        S3 URLを使う場合は、事前にテンプレートファイルをS3へ配置し、そのテンプレートを読み取れるURLをCloudFormationに指定します
       </p>
 
-      <p>テンプレートをS3へアップロードします。</p>
+      <p>テンプレートをS3へアップロードします</p>
       <div class="code">
         <div class="code-header">
           <span>powershell</span>
@@ -206,7 +206,7 @@
   s3://&lt;BUCKET_NAME&gt;/cloudformation/templates/example.yml</code></pre>
       </div>
 
-      <p>コンソールの <strong>Amazon S3 URL</strong> に、以下のようなURLを指定します。</p>
+      <p>コンソールの <strong>Amazon S3 URL</strong> に、以下のようなURLを指定します</p>
       <div class="code">
         <div class="code-header">
           <span>text</span>
@@ -217,12 +217,12 @@
 
       <div class="notice">
         <strong>ℹ️ 情報</strong>
-        テンプレートがネストスタックを参照する場合は、参照先のテンプレートもS3上に配置します。S3バケットやオブジェクトの権限、リージョン、バージョニング有無も確認します。
+        テンプレートがネストスタックを参照する場合は、参照先のテンプレートもS3上に配置します。S3バケットやオブジェクトの権限、リージョン、バージョニング有無も確認します
       </div>
 
       <h2 id="git-sync">Gitから同期</h2>
       <p>
-        Git syncは、CloudFormationテンプレートファイルとスタックデプロイファイルをGitリポジトリで管理し、対象ブランチへの変更をスタック更新に連動させる方法です。
+        Git syncは、CloudFormationテンプレートファイルとスタックデプロイファイルをGitリポジトリで管理し、対象ブランチへの変更をスタック更新に連動させる方法です
       </p>
 
       <table>
@@ -235,32 +235,32 @@
         <tbody>
           <tr>
             <td>接続</td>
-            <td>GitHubなどのリポジトリプロバイダーとの接続を作成または選択します。</td>
+            <td>GitHubなどのリポジトリプロバイダーとの接続を作成または選択します</td>
           </tr>
           <tr>
             <td>リポジトリ / ブランチ</td>
-            <td>CloudFormationが監視するリポジトリとブランチを選択します。</td>
+            <td>CloudFormationが監視するリポジトリとブランチを選択します</td>
           </tr>
           <tr>
             <td>デプロイファイルのパス</td>
-            <td>スタック名、テンプレートファイル、パラメータなどを管理するファイルのパスを指定します。</td>
+            <td>スタック名、テンプレートファイル、パラメータなどを管理するファイルのパスを指定します</td>
           </tr>
           <tr>
             <td>テンプレートファイルパス</td>
-            <td>リポジトリ内のCloudFormationテンプレートのパスを指定します。</td>
+            <td>リポジトリ内のCloudFormationテンプレートのパスを指定します</td>
           </tr>
           <tr>
             <td>IAMロール</td>
-            <td>CloudFormationがGitリポジトリから同期してスタックを操作するためのロールを指定します。</td>
+            <td>CloudFormationがGitリポジトリから同期してスタックを操作するためのロールを指定します</td>
           </tr>
           <tr>
             <td>Pull Requestコメント</td>
-            <td>有効化すると、変更セットの内容をPull Requestにコメントできます。</td>
+            <td>有効化すると、変更セットの内容をPull Requestにコメントできます</td>
           </tr>
         </tbody>
       </table>
 
-      <p>デプロイファイルは、環境ごとに分けると差分が追いやすくなります。</p>
+      <p>デプロイファイルは、環境ごとに分けると差分が追いやすくなります</p>
       <div class="code">
         <div class="code-header">
           <span>text</span>
@@ -273,12 +273,12 @@ deployments/stg-stack.yaml</code></pre>
 
       <div class="notice">
         <strong>📍 判断基準</strong>
-        Git syncはレビュー履歴を残せる一方で、初回の接続、IAMロール、デプロイファイル設計が必要です。まずは通常のコンソール作成やCLIで動作を確認し、継続運用するテンプレートだけGit sync化するのが扱いやすいです。
+        Git syncはレビュー履歴を残せる一方で、初回の接続、IAMロール、デプロイファイル設計が必要です。まずは通常のコンソール作成やCLIで動作を確認し、継続運用するテンプレートだけGit sync化するのが扱いやすいです
       </div>
 
       <h2 id="composer">Infrastructure Composerの扱い</h2>
       <p>
-        Infrastructure Composerは、AWSリソースを視覚的に配置しながらCloudFormationテンプレートを作成・編集できる機能です。構成を整理する初期段階や学習には便利ですが、リポジトリ運用では出力されたテンプレートをGitで管理し、レビュー、検証、変更セット確認の流れに戻します。
+        Infrastructure Composerは、AWSリソースを視覚的に配置しながらCloudFormationテンプレートを作成・編集できる機能です。構成を整理する初期段階や学習には便利ですが、リポジトリ運用では出力されたテンプレートをGitで管理し、レビュー、検証、変更セット確認の流れに戻します
       </p>
 
       <table>
@@ -290,19 +290,19 @@ deployments/stg-stack.yaml</code></pre>
         </thead>
         <tbody>
           <tr>
-            <td>構成図に近い感覚で初期テンプレートを作る。</td>
-            <td>既存リポジトリの細かい命名規則、パラメータ設計、コメント整理を維持する。</td>
+            <td>構成図に近い感覚で初期テンプレートを作る</td>
+            <td>既存リポジトリの細かい命名規則、パラメータ設計、コメント整理を維持する</td>
           </tr>
           <tr>
-            <td>リソース同士の関係を視覚的に確認する。</td>
-            <td>Lambdaなど、コードやパッケージングが絡む構成をそのまま完結させる。</td>
+            <td>リソース同士の関係を視覚的に確認する</td>
+            <td>Lambdaなど、コードやパッケージングが絡む構成をそのまま完結させる</td>
           </tr>
         </tbody>
       </table>
 
       <h2 id="create-cli">AWS CLIでスタック作成</h2>
       <p>
-        IAMリソースを作成する場合は <code>CAPABILITY_NAMED_IAM</code> または <code>CAPABILITY_IAM</code> が必要です。必要な場合だけ指定します。
+        IAMリソースを作成する場合は <code>CAPABILITY_NAMED_IAM</code> または <code>CAPABILITY_IAM</code> が必要です。必要な場合だけ指定します
       </p>
 
       <div class="code">
@@ -319,7 +319,7 @@ deployments/stg-stack.yaml</code></pre>
 
       <h2 id="change-set">変更セット</h2>
       <p>
-        本番更新では、直接 <code>update-stack</code> する前に変更セットを作成し、置換、削除、IAM変更の有無を確認します。
+        本番更新では、直接 <code>update-stack</code> する前に変更セットを作成し、置換、削除、IAM変更の有無を確認します
       </p>
 
       <div class="code">
@@ -347,7 +347,7 @@ deployments/stg-stack.yaml</code></pre>
 
       <h2 id="rollback">ロールバック・ドリフト検出</h2>
       <p>
-        <code>ROLLBACK_COMPLETE</code> や <code>UPDATE_ROLLBACK_FAILED</code> は、イベントタブで失敗したリソースと理由を確認します。原因を特定するまでは、同じテンプレートで再実行しないことを基本とします。
+        <code>ROLLBACK_COMPLETE</code> や <code>UPDATE_ROLLBACK_FAILED</code> は、イベントタブで失敗したリソースと理由を確認します。原因を特定するまでは、同じテンプレートで再実行しないことを基本とします
       </p>
 
       <table>
@@ -360,20 +360,20 @@ deployments/stg-stack.yaml</code></pre>
         <tbody>
           <tr>
             <td>ROLLBACK_COMPLETE</td>
-            <td>作成失敗です。イベントを確認し、必要に応じてスタックを削除してから再作成します。</td>
+            <td>作成失敗です。イベントを確認し、必要に応じてスタックを削除してから再作成します</td>
           </tr>
           <tr>
             <td>UPDATE_ROLLBACK_COMPLETE</td>
-            <td>更新失敗後に元の状態へ戻っています。差分と失敗理由を確認してから再更新します。</td>
+            <td>更新失敗後に元の状態へ戻っています。差分と失敗理由を確認してから再更新します</td>
           </tr>
           <tr>
             <td>UPDATE_ROLLBACK_FAILED</td>
-            <td>手動変更や削除済みリソースが影響している可能性があります。対象リソースを確認し、continue-update-rollbackを検討します。</td>
+            <td>手動変更や削除済みリソースが影響している可能性があります。対象リソースを確認し、continue-update-rollbackを検討します</td>
           </tr>
         </tbody>
       </table>
 
-      <p>手動変更の有無を確認する場合は、ドリフト検出を実行します。</p>
+      <p>手動変更の有無を確認する場合は、ドリフト検出を実行します</p>
       <div class="code">
         <div class="code-header">
           <span>powershell</span>
@@ -385,10 +385,10 @@ deployments/stg-stack.yaml</code></pre>
 
       <h2 id="delete">削除前チェック</h2>
       <ul>
-        <li>S3バケットにオブジェクトが残っていないか確認します。</li>
-        <li>RDSの削除保護、スナップショット要否を確認します。</li>
-        <li>ENI、NAT Gateway、VPC Endpointなど依存関係で削除が詰まるリソースを確認します。</li>
-        <li>検証完了後、課金リソースが残っていないか確認します。</li>
+        <li>S3バケットにオブジェクトが残っていないか確認します</li>
+        <li>RDSの削除保護、スナップショット要否を確認します</li>
+        <li>ENI、NAT Gateway、VPC Endpointなど依存関係で削除が詰まるリソースを確認します</li>
+        <li>検証完了後、課金リソースが残っていないか確認します</li>
       </ul>
 
       <h2 id="checklist">実務チェックリスト</h2>
@@ -402,15 +402,15 @@ deployments/stg-stack.yaml</code></pre>
         <tbody>
           <tr>
             <td>作成前</td>
-            <td>リージョン、アカウント、テンプレートソース、パラメータ、IAM権限、コスト影響を確認します。</td>
+            <td>リージョン、アカウント、テンプレートソース、パラメータ、IAM権限、コスト影響を確認します</td>
           </tr>
           <tr>
             <td>更新前</td>
-            <td>変更セット、置換リソース、削除リソース、停止影響、ロールバック可否を確認します。</td>
+            <td>変更セット、置換リソース、削除リソース、停止影響、ロールバック可否を確認します</td>
           </tr>
           <tr>
             <td>削除前</td>
-            <td>バックアップ要否、保持データ、手動作成リソース、削除保護、課金影響を確認します。</td>
+            <td>バックアップ要否、保持データ、手動作成リソース、削除保護、課金影響を確認します</td>
           </tr>
         </tbody>
       </table>

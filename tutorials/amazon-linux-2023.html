@@ -46,11 +46,11 @@
 
       <div class="callout">
         <strong>ℹ️ 前提</strong>
-        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;FQDN&gt;</code>、<code>&lt;PRIVATE_IP&gt;</code>、<code>&lt;RELEASE_VERSION&gt;</code> などは環境に合わせて置き換えます。
+        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;FQDN&gt;</code>、<code>&lt;PRIVATE_IP&gt;</code>、<code>&lt;RELEASE_VERSION&gt;</code> などは環境に合わせて置き換えます
       </div>
 
       <h2 id="step-01">0. 起動時の確認</h2>
-      <p>本手順では、適用先の組織ポリシーで指定された <code>ED25519</code> キーペアを使用します。Amazon EC2はRSAキーペアにも対応していますが、鍵方式や鍵長が組織のセキュリティ基準に適合しないRSA鍵は使用しません。</p>
+      <p>本手順では、適用先の組織ポリシーで指定された <code>ED25519</code> キーペアを使用します。Amazon EC2はRSAキーペアにも対応していますが、鍵方式や鍵長が組織のセキュリティ基準に適合しないRSA鍵は使用しません</p>
       <table>
         <thead>
           <tr>
@@ -59,14 +59,14 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>キーペア</td><td><code>ED25519</code> を利用します。</td></tr>
-          <tr><td>接続方式</td><td>SSH、Session Manager、踏み台経由など、作業経路を事前に確認します。</td></tr>
-          <tr><td>バックアップ</td><td>設定変更前にAMI、EBS Snapshot、設定ファイル退避の要否を確認します。</td></tr>
+          <tr><td>キーペア</td><td><code>ED25519</code> を利用します</td></tr>
+          <tr><td>接続方式</td><td>SSH、Session Manager、踏み台経由など、作業経路を事前に確認します</td></tr>
+          <tr><td>バックアップ</td><td>設定変更前にAMI、EBS Snapshot、設定ファイル退避の要否を確認します</td></tr>
         </tbody>
       </table>
 
       <h2 id="step-02">2. SELinuxの状態確認</h2>
-      <p>Amazon Linux 2023ではSELinuxが初期状態で <code>Permissive</code> です。Red Hat Enterprise Linux 9のように <code>permissive</code> へ変更する手順は標準では不要です。</p>
+      <p>Amazon Linux 2023ではSELinuxが初期状態で <code>Permissive</code> です。Red Hat Enterprise Linux 9のように <code>permissive</code> へ変更する手順は標準では不要です</p>
       <h3>2.1 SELinuxの動作モード確認</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -80,7 +80,7 @@
       </div>
 
       <h2 id="step-04">4. ログインプロファイル設定</h2>
-      <p><code>export EDITOR=vi</code> をシェルで直接実行しただけでは、現在のシェルと子プロセスにしか反映されず、再起動後には残りません。ログイン後も継続して利用する設定は <code>/etc/profile.d/</code> に配置します。</p>
+      <p><code>export EDITOR=vi</code> をシェルで直接実行しただけでは、現在のシェルと子プロセスにしか反映されず、再起動後には残りません。ログイン後も継続して利用する設定は <code>/etc/profile.d/</code> に配置します</p>
       <h3>4.1 履歴設定ファイルの作成</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -151,7 +151,7 @@ date</code></pre>
       </div>
 
       <h2 id="step-07">7. sshd_config修正</h2>
-      <p>SSHのrootログイン、タイムアウト、DNS逆引き、SFTPログ出力を確認・調整します。キーペアは起動時に <code>ED25519</code> で作成する前提です。</p>
+      <p>SSHのrootログイン、タイムアウト、DNS逆引き、SFTPログ出力を確認・調整します。キーペアは起動時に <code>ED25519</code> で作成する前提です</p>
       <h3>7.1 sshd_configのバックアップ取得</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -183,7 +183,7 @@ systemctl status sshd</code></pre>
       </div>
 
       <h2 id="step-09">9. 追加ディスクのマウント</h2>
-      <p>追加EBSのデバイス名は、EC2の指定値とOS上の表示が異なることがあります。Nitroベースのインスタンスでは、通常 <code>/dev/nvme1n1</code> のようなNVMeデバイスとして認識されます。</p>
+      <p>追加EBSのデバイス名は、EC2の指定値とOS上の表示が異なることがあります。Nitroベースのインスタンスでは、通常 <code>/dev/nvme1n1</code> のようなNVMeデバイスとして認識されます</p>
 
       <h3>9.1 デバイスとファイルシステムの確認</h3>
       <div class="code">
@@ -194,7 +194,7 @@ file -s /dev/&lt;DEVICE_NAME&gt;</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <code>file -s</code> の結果が <code>data</code> の場合は、ファイルシステムがありません。既存のファイルシステムやデータがあるボリュームに <code>mkfs</code> を実行するとデータが失われるため、対象デバイスを必ず確認します。
+        <code>file -s</code> の結果が <code>data</code> の場合は、ファイルシステムがありません。既存のファイルシステムやデータがあるボリュームに <code>mkfs</code> を実行するとデータが失われるため、対象デバイスを必ず確認します
       </div>
 
       <h3>9.2 ファイルシステムの作成</h3>
@@ -239,11 +239,11 @@ df -hT &lt;MOUNT_POINT&gt;</code></pre>
       </div>
 
       <h2 id="step-10">10. Amazon EFSのマウント</h2>
-      <p>Amazon EFSを利用する場合は、EFS用Security Group、マウントターゲット、マウント方式を確認します。不要な場合はこの手順をスキップします。</p>
+      <p>Amazon EFSを利用する場合は、EFS用Security Group、マウントターゲット、マウント方式を確認します。不要な場合はこの手順をスキップします</p>
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        <p><code>amazon-efs-utils</code> はAmazon Linux 2023のリポジトリから導入できますが、すべてのAMIにインストール済みとは限りません。パッケージの有無を確認し、未導入の場合にインストールします。</p>
-        <p>通常は、転送中の暗号化を利用できるEFSマウントヘルパーを使用します。IPアドレスを指定したNFSv4.1マウントは、疎通確認やマウントターゲットを明示する要件がある場合に利用します。</p>
+        <p><code>amazon-efs-utils</code> はAmazon Linux 2023のリポジトリから導入できますが、すべてのAMIにインストール済みとは限りません。パッケージの有無を確認し、未導入の場合にインストールします</p>
+        <p>通常は、転送中の暗号化を利用できるEFSマウントヘルパーを使用します。IPアドレスを指定したNFSv4.1マウントは、疎通確認やマウントターゲットを明示する要件がある場合に利用します</p>
       </div>
 
       <h3>10.1 EFSマウントヘルパーの確認と導入</h3>
@@ -252,7 +252,7 @@ df -hT &lt;MOUNT_POINT&gt;</code></pre>
         <pre><code>rpm -q amazon-efs-utils || dnf install -y amazon-efs-utils</code></pre>
       </div>
 
-      <p>EFS用Security Groupでは、対象EC2のSecurity GroupまたはプライベートIPから <code>2049/tcp</code> を許可します。</p>
+      <p>EFS用Security Groupでは、対象EC2のSecurity GroupまたはプライベートIPから <code>2049/tcp</code> を許可します</p>
 
       <h3>10.2 マウントポイントの作成とTLSマウント</h3>
       <div class="code">
@@ -302,7 +302,7 @@ df -Th</code></pre>
       </div>
 
       <h3>11.3 swapファイルの作成</h3>
-      <p>2GiBのswapファイルを作成し、rootだけが読み書きできる権限を設定します。</p>
+      <p>2GiBのswapファイルを作成し、rootだけが読み書きできる権限を設定します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>dd if=/dev/zero of=/.swapfile bs=512M count=4
@@ -351,7 +351,7 @@ dnf search postgresql</code></pre>
       </div>
 
       <h3>12.2 Web・メール・DBクライアントの導入</h3>
-      <p>MySQL互換のクライアント用途では、Amazon Linux 2023の標準リポジトリ上にあるMariaDB系パッケージを確認して導入します。PostgreSQLも同様に、利用するメジャーバージョンを確認してから導入します。</p>
+      <p>MySQL互換のクライアント用途では、Amazon Linux 2023の標準リポジトリ上にあるMariaDB系パッケージを確認して導入します。PostgreSQLも同様に、利用するメジャーバージョンを確認してから導入します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>dnf install -y httpd httpd-devel httpd-tools mod_ssl
@@ -362,12 +362,12 @@ dnf install -y postgresql15</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        <p>外部リポジトリを追加する前に、標準リポジトリで提供されるパッケージとサポート方針を確認します。</p>
-        <p>DBサーバー本体を構築する場合は、<code>mariadb105-server</code> や <code>postgresql15-server</code> など、環境で利用するバージョンに合わせて別途検証します。</p>
+        <p>外部リポジトリを追加する前に、標準リポジトリで提供されるパッケージとサポート方針を確認します</p>
+        <p>DBサーバー本体を構築する場合は、<code>mariadb105-server</code> や <code>postgresql15-server</code> など、環境で利用するバージョンに合わせて別途検証します</p>
       </div>
 
       <h2 id="step-13">13. Postfix設定</h2>
-      <p>Postfixを利用する場合は、ホスト名、ドメイン、リレー先などを設定します。</p>
+      <p>Postfixを利用する場合は、ホスト名、ドメイン、リレー先などを設定します</p>
       <h3>13.1 main.cfのバックアップ取得と編集</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -401,12 +401,34 @@ systemctl status httpd</code></pre>
 
       <h2 id="step-15">15. 運用ツールの導入</h2>
       <h3>15.1 パッケージのインストール</h3>
-      <p>通信確認、ログ調査、ファイル転送、プロセス確認などで利用する運用ツールを導入します。</p>
+      <p>通信確認、ログ調査、ファイル転送、プロセス確認などで利用する運用ツールを導入します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>dnf install -y vim-enhanced telnet lftp mlocate libyaml wget mtr tcpdump tmux \
 bash-completion net-tools bind-utils sysstat lsof tar zip unzip logrotate</code></pre>
       </div>
+
+      <table>
+        <thead><tr><th>パッケージ</th><th>主な用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>vim-enhanced</code></td><td>設定ファイル編集</td></tr>
+          <tr><td><code>telnet</code></td><td>TCPポートの到達性確認。対話ログインには使用しません</td></tr>
+          <tr><td><code>lftp</code></td><td>FTP/SFTPによるファイル転送と接続確認</td></tr>
+          <tr><td><code>mlocate</code></td><td><code>locate</code>によるファイルパス検索</td></tr>
+          <tr><td><code>libyaml</code></td><td>YAMLを扱うツールの依存ライブラリ</td></tr>
+          <tr><td><code>wget</code></td><td>HTTP/HTTPSのファイル取得</td></tr>
+          <tr><td><code>mtr</code></td><td>経路上の遅延・パケットロス確認</td></tr>
+          <tr><td><code>tcpdump</code></td><td>パケットキャプチャ</td></tr>
+          <tr><td><code>tmux</code></td><td>SSH切断後も作業を継続できる端末多重化</td></tr>
+          <tr><td><code>bash-completion</code></td><td>コマンドとオプションのタブ補完</td></tr>
+          <tr><td><code>net-tools</code></td><td>旧来の<code>netstat</code>・<code>ifconfig</code>。通常は<code>ss</code>・<code>ip</code>を優先します</td></tr>
+          <tr><td><code>bind-utils</code></td><td><code>dig</code>と<code>nslookup</code>によるDNS確認</td></tr>
+          <tr><td><code>sysstat</code></td><td><code>sar</code>と<code>iostat</code>による性能情報取得</td></tr>
+          <tr><td><code>lsof</code></td><td>プロセスが開いているファイルとポートの確認</td></tr>
+          <tr><td><code>tar</code> / <code>zip</code> / <code>unzip</code></td><td>ファイルの圧縮と展開</td></tr>
+          <tr><td><code>logrotate</code></td><td>ログファイルの世代管理</td></tr>
+        </tbody>
+      </table>
 
       <h3>15.2 インストール結果の確認</h3>
       <div class="code">
@@ -415,7 +437,7 @@ bash-completion net-tools bind-utils sysstat lsof tar zip unzip logrotate</code>
       </div>
 
       <h2 id="step-16">16. Amazon Linux 2023リリース更新</h2>
-      <p>Amazon Linux 2023はリリースバージョンを指定して更新できます。新しいリリースが利用可能な場合は、<code>dnf check-release-update</code> の結果を確認してから、適用するリリースを明示します。</p>
+      <p>Amazon Linux 2023はリリースバージョンを指定して更新できます。新しいリリースが利用可能な場合は、<code>dnf check-release-update</code> の結果を確認してから、適用するリリースを明示します</p>
       <h3>16.1 利用可能なリリースの確認</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -456,7 +478,7 @@ Version 2023.8.20250804:
       </div>
 
       <h2 id="step-17">17. rsyslog設定</h2>
-      <p>Amazon Linux 2023は <code>systemd-journald</code> が標準です。従来の <code>/var/log/messages</code>、<code>/var/log/secure</code>、<code>/var/log/cron</code>、SFTPログファイルを使う運用では <code>rsyslog</code> を追加導入します。</p>
+      <p>Amazon Linux 2023は <code>systemd-journald</code> が標準です。従来の <code>/var/log/messages</code>、<code>/var/log/secure</code>、<code>/var/log/cron</code>、SFTPログファイルを使う運用では <code>rsyslog</code> を追加導入します</p>
       <h3>17.1 rsyslogのインストールと起動</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -466,7 +488,7 @@ systemctl status rsyslog</code></pre>
       </div>
 
       <h3>17.2 SFTPログファイルの作成</h3>
-      <p>SFTPログの出力先ファイルを作成し、所有者と権限を設定します。</p>
+      <p>SFTPログの出力先ファイルを作成し、所有者と権限を設定します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>touch /var/log/sftp.log
@@ -494,7 +516,7 @@ tail -n 20 /var/log/sftp.log</code></pre>
       </div>
 
       <h2 id="step-18">18. cron設定</h2>
-      <p>Amazon Linux 2023ではcronがデフォルトでは利用できません。既存運用で <code>crontab</code> を使用する場合は <code>cronie</code> を導入し、<code>crond</code> を有効化します。</p>
+      <p>Amazon Linux 2023ではcronがデフォルトでは利用できません。既存運用で <code>crontab</code> を使用する場合は <code>cronie</code> を導入し、<code>crond</code> を有効化します</p>
       <h3>18.1 cronieのインストール</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -515,7 +537,7 @@ systemctl status crond</code></pre>
       </div>
 
       <h2 id="step-19">19. sudoers編集時のエディタ指定</h2>
-      <p>デフォルトエディタは、4.2で作成した <code>/etc/profile.d/editor.sh</code> によりログイン時に設定されます。現在のシェルへ未反映の場合は、設定を読み込んでから <code>visudo</code> を実行します。</p>
+      <p>デフォルトエディタは、4.2で作成した <code>/etc/profile.d/editor.sh</code> によりログイン時に設定されます。現在のシェルへ未反映の場合は、設定を読み込んでから <code>visudo</code> を実行します</p>
       <h3>19.1 エディタ設定の反映とsudoers編集</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -530,7 +552,7 @@ visudo</code></pre>
       </div>
 
       <h2 id="step-20">20. logrotate設定</h2>
-      <p>rsyslogやミドルウェアのログをファイル出力する場合は、logrotate設定を確認します。</p>
+      <p>rsyslogやミドルウェアのログをファイル出力する場合は、logrotate設定を確認します</p>
       <h3>20.1 共通設定のバックアップ取得と編集</h3>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>

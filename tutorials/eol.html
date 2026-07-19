@@ -53,29 +53,21 @@
       <h1>EOL / ライフサイクル一覧表</h1>
 
       <p class="lead">
-        OS、AWSマネージドサービス、ミドルウェア、運用エージェントのサポート期限を確認し、更新計画、変更管理、リスク説明に使うための確認表です。
+        OS、AWSマネージドサービス、ミドルウェア、運用エージェントのサポート期限と主要な世代差分を整理した一覧表です
       </p>
 
       <div class="notice notice-warning">
         <strong>⚠️ 注意</strong>
-        EOLやサポート期限はベンダーにより変更される可能性があります。作業前には必ず公式ドキュメントを確認します。
+        EOLやサポート期限は変更される可能性があるため、作業前に公式ドキュメントを確認します
       </div>
-
-      <h2 id="policy">確認方針</h2>
-      <ul>
-        <li>本番環境、検証環境、運用端末で利用しているOS、DBエンジン、ランタイム、エージェントを一覧化します。</li>
-        <li>EOLが近いものは、アップグレード方式、影響範囲、バックアップ、切り戻し、作業ウィンドウを確認します。</li>
-        <li>AWSマネージドサービスは、サービス全体ではなくエンジンバージョン、ランタイム、プラットフォーム単位で確認します。</li>
-        <li>OS同梱パッケージと外部リポジトリ導入パッケージは、サポート元が異なるため分けて確認します。</li>
-      </ul>
 
       <h2 id="os">OS</h2>
       <table class="lifecycle-table lifecycle-table-os">
         <colgroup>
-          <col style="width: 30%">
-          <col style="width: 16%">
-          <col style="width: 30%">
-          <col style="width: 24%">
+          <col style="width: 34%">
+          <col style="width: 15%">
+          <col style="width: 29%">
+          <col style="width: 22%">
         </colgroup>
         <thead>
           <tr>
@@ -87,6 +79,12 @@
         </thead>
         <tbody>
           <tr>
+            <td>CentOS Linux 7</td>
+            <td>2014/07/07</td>
+            <td>End of Life: 2024/06/30</td>
+            <td><a href="https://www.redhat.com/en/topics/linux/centos-linux-eol">CentOS Linux EOL</a></td>
+          </tr>
+          <tr>
             <td>Red Hat Enterprise Linux 8</td>
             <td>2019/05/07</td>
             <td>Full Support: 2024/05/31<br>Maintenance Support: 2029/05/31</td>
@@ -96,6 +94,12 @@
             <td>Red Hat Enterprise Linux 9</td>
             <td>2022/05/18</td>
             <td>Full Support: 2027/05/31<br>Maintenance Support: 2032/05/31</td>
+            <td><a href="https://access.redhat.com/support/policy/updates/errata">Red Hat Enterprise Linux Life Cycle</a></td>
+          </tr>
+          <tr>
+            <td>Red Hat Enterprise Linux 10</td>
+            <td>2025/05/20</td>
+            <td>Full Support: 2030/05/31<br>Maintenance Support: 2035/05/31</td>
             <td><a href="https://access.redhat.com/support/policy/updates/errata">Red Hat Enterprise Linux Life Cycle</a></td>
           </tr>
           <tr>
@@ -131,71 +135,196 @@
         </tbody>
       </table>
 
-      <h2 id="os-differences">OS差分</h2>
-      <p>OSのライフサイクル確認では、期限だけでなく、パッケージ管理、ログ、cron、SELinux、Python、暗号ポリシーなどの運用差分も確認します。</p>
+      <h2 id="os-differences">Linux世代差分</h2>
 
       <table class="lifecycle-table lifecycle-table-reference">
         <colgroup>
-          <col style="width: 15%">
-          <col style="width: 20%">
-          <col style="width: 24%">
-          <col style="width: 21%">
-          <col style="width: 20%">
+          <col style="width: 19%">
+          <col style="width: 36%">
+          <col style="width: 45%">
         </colgroup>
         <thead>
           <tr>
             <th>対象</th>
-            <th>位置付け</th>
-            <th>パッケージ管理 / リポジトリ</th>
-            <th>サービス / ログ / cron</th>
-            <th>移行・運用時の確認点</th>
+            <th>基盤・パッケージ管理</th>
+            <th>標準提供コンポーネント・運用</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>CentOS 7</td>
-            <td>RHEL 7互換の旧世代。既存環境の移行元として扱います。</td>
-            <td><code>yum</code>中心。Software CollectionsやEPELを併用している環境があります。DNFモジュールは前提にしません。</td>
-            <td><code>systemd</code>。ログは<code>rsyslog</code>と<code>/var/log/messages</code>前提の運用が多く、cronも標準的に利用します。</td>
-            <td>新規採用ではなく移行元として棚卸します。<code>ifconfig</code>、<code>netstat</code>、Python 2系、古いOpenSSL依存を確認します。</td>
+            <td>
+              <ul>
+                <li>RHEL 7互換のRPMベース</li>
+                <li>パッケージ管理: <code>yum</code></li>
+                <li>標準リポジトリ終了後はVaultへ移行</li>
+                <li>Software CollectionsとEPELを併用する構成あり</li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>Python 2.7、OpenSSL 1.0.2</li>
+                <li><code>systemd</code>、<code>rsyslog</code>、<code>cronie</code></li>
+                <li><code>/var/log/messages</code>中心のログ運用</li>
+                <li><code>ifconfig</code>、<code>netstat</code>を使う旧手順が残存</li>
+              </ul>
+            </td>
           </tr>
           <tr>
             <td>Red Hat Enterprise Linux 8</td>
-            <td>RHEL 8世代。RHEL 7からの移行先として利用されることが多い世代です。</td>
-            <td><code>dnf</code>標準、<code>yum</code>は互換コマンド。Application Streams / moduleで複数バージョンを選択します。</td>
-            <td><code>systemd</code>。<code>journald</code>と<code>rsyslog</code>を併用します。cronは利用可能です。</td>
-            <td>AppStreamの有効化、モジュール選択、NetworkManager前提、Python 3系への移行を確認します。公式情報: <a href="https://access.redhat.com/support/policy/updates/rhel-app-streams-life-cycle">Application Streams Life Cycle</a></td>
+            <td>
+              <ul>
+                <li>FedoraをアップストリームとするRPMベース</li>
+                <li>BaseOSとAppStreamを分離</li>
+                <li>パッケージ管理: <code>dnf</code>、<code>yum</code>は互換コマンド</li>
+                <li>複数バージョンはDNF moduleで切り替え</li>
+                <li>NetworkManagerによるネットワーク管理</li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>初期Application Stream: PHP 7.2、MariaDB 10.3、PostgreSQL 10、MySQL 8.0</li>
+                <li>Python 3.6、OpenSSL 1.1.1</li>
+                <li><code>systemd-journald</code>、<code>rsyslog</code>、<code>cronie</code></li>
+                <li>追加ストリーム: PHP 7.3 / 7.4 / 8.0 / 8.2、MariaDB 10.5 / 10.11、PostgreSQL 12 / 13 / 15 / 16</li>
+              </ul>
+            </td>
           </tr>
           <tr>
             <td>Red Hat Enterprise Linux 9</td>
-            <td>RHEL 9世代。現在の新規構築候補として扱います。</td>
-            <td><code>dnf</code>標準。Application Streamsは継続しますが、RHEL 8よりモジュール依存は少なくなります。</td>
-            <td><code>systemd</code>。<code>journald</code>と<code>rsyslog</code>を併用します。cronは利用可能です。</td>
-            <td>SELinux enforcing、OpenSSL 3系、crypto-policies、SSH鍵・暗号方式、Python/Ruby/PHPなど標準ランタイムの差分を確認します。</td>
+            <td>
+              <ul>
+                <li>FedoraをアップストリームとするRPMベース</li>
+                <li>BaseOSとAppStreamを分離</li>
+                <li>パッケージ管理: <code>dnf</code></li>
+                <li>初期バージョンは通常RPM、追加バージョンはDNF moduleを含む</li>
+                <li>NetworkManager、SELinux enforcing、システム全体のcrypto-policies</li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>Full Life Application Stream: PHP 8.0、MariaDB 10.5、PostgreSQL 13、Apache HTTP Server 2.4、NGINX 1.20</li>
+                <li>Python 3.9、OpenSSL 3</li>
+                <li><code>systemd-journald</code>、<code>rsyslog</code>、<code>cronie</code></li>
+                <li>追加ストリーム: PHP 8.1 / 8.2 / 8.3、MariaDB 10.11、PostgreSQL 15 / 16 / 18</li>
+              </ul>
+            </td>
           </tr>
           <tr>
             <td>Red Hat Enterprise Linux 10</td>
-            <td>RHEL 10世代。今後の新規導入候補として、利用製品の対応状況を先に確認します。</td>
-            <td><code>dnf</code>系の新世代を前提に確認します。RHEL 8/9の手順をそのまま流用せず、公式ドキュメントで差分を確認します。</td>
-            <td><code>systemd</code>中心。ログ、タイマー、サービス管理はsystemd前提で整理します。</td>
-            <td>監視エージェント、バックアップ製品、セキュリティ製品、ミドルウェア、アプリケーションランタイムの対応可否を先に確認します。</td>
+            <td>
+              <ul>
+                <li>FedoraをアップストリームとするRPMベース</li>
+                <li>BaseOSとAppStreamを分離</li>
+                <li>パッケージ管理: <code>dnf</code></li>
+                <li>DNF modularityは非推奨で、Application Streamsをモジュール形式では配布しない</li>
+                <li>NetworkManager、SELinux enforcing、crypto-policies</li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>Full Life Application Stream: PHP 8.3、MariaDB 10.11、PostgreSQL 16、Apache HTTP Server 2.4、NGINX 1.26、Valkey 8</li>
+                <li>Python 3.12、OpenSSL 3</li>
+                <li><code>systemd-journald</code>、<code>rsyslog</code>、<code>cronie</code></li>
+                <li>追加ストリーム: PHP 8.4、MariaDB 11.8、MySQL 8.4、PostgreSQL 18</li>
+              </ul>
+            </td>
           </tr>
           <tr>
             <td>Amazon Linux 2</td>
-            <td>AWS標準の旧世代Amazon Linux。AL2023への移行元として扱います。</td>
-            <td><code>yum</code>中心。Amazon Linux Extrasで追加ランタイムやミドルウェアを有効化する運用が多いです。</td>
-            <td><code>systemd</code>。<code>rsyslog</code>とcron前提の運用が多いです。</td>
-            <td>AL2023へ移行する場合は、Extras廃止、パッケージ名、OpenSSL、Python、cron/rsyslogの差分を確認します。</td>
+            <td>
+              <ul>
+                <li>RHEL / Fedora系のRPMベース</li>
+                <li>パッケージ管理: <code>yum</code></li>
+                <li>Amazon Linux Extrasで追加ランタイムを有効化</li>
+                <li>ローリング更新型の標準リポジトリ</li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>Python 2.7 / 3系、OpenSSL 1.0.2</li>
+                <li><code>systemd</code>、<code>rsyslog</code>、<code>cronie</code></li>
+                <li>ExtrasからPHP、NGINX、MariaDB、PostgreSQLなどを選択</li>
+                <li>AL2023移行時はExtras廃止とパッケージ名変更を確認</li>
+              </ul>
+            </td>
           </tr>
           <tr>
             <td>Amazon Linux 2023</td>
-            <td>AL2後継のAWS向け世代。新規構築候補として扱います。</td>
-            <td><code>dnf</code>標準。バージョン固定リポジトリと<code>dnf upgrade --releasever=...</code>による決定的アップグレードを利用します。</td>
-            <td><code>systemd</code>。標準では<code>systemd-journald</code>とsystemd timer寄りです。必要に応じて<code>rsyslog</code>や<code>cronie</code>を追加します。</td>
-            <td>SELinuxはpermissive、Python 3系、OpenSSL 3系です。公式情報: <a href="https://docs.aws.amazon.com/linux/al2023/ug/compare-with-al2.html">AL2とAL2023の比較</a> / <a href="https://docs.aws.amazon.com/linux/al2023/ug/deterministic-upgrades.html">決定的アップグレード</a></td>
+            <td>
+              <ul>
+                <li>FedoraをアップストリームとするRPMベース</li>
+                <li>パッケージ管理: <code>dnf</code></li>
+                <li>Amazon Linux Extrasを廃止</li>
+                <li>バージョン固定リポジトリと<code>dnf upgrade --releasever=...</code></li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li>Python 3、OpenSSL 3、SELinux permissive</li>
+                <li><code>systemd-journald</code>を標準使用</li>
+                <li><code>rsyslog</code>と<code>cronie</code>は標準AMIに未導入のため必要時に追加</li>
+                <li>標準リポジトリでMariaDB系、PostgreSQL、Apache HTTP Server、NGINXなどを提供</li>
+              </ul>
+            </td>
           </tr>
         </tbody>
       </table>
+
+      <p>
+        公式情報: <a href="https://access.redhat.com/support/policy/updates/rhel-app-streams-life-cycle">Red Hat Enterprise Linux Application Streams Life Cycle</a> /
+        <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/considerations_in_adopting_rhel_10/software-management">Software management changes in Red Hat Enterprise Linux 10</a> /
+        <a href="https://docs.aws.amazon.com/linux/al2023/ug/compare-with-al2.html">Comparing Amazon Linux 2 and Amazon Linux 2023</a> /
+        <a href="https://docs.aws.amazon.com/linux/al2023/ug/deterministic-upgrades.html">Deterministic upgrades through versioned repositories</a>
+      </p>
+
+      <h2 id="rhel-appstream">Red Hat Enterprise Linux Application Streams</h2>
+
+      <div class="notice notice-info">
+        <strong>ℹ️ 情報</strong>
+        下表のバージョンは最小構成のOSへ自動的にインストールされるものではなく、Red Hat標準リポジトリから選択できる初期提供バージョンまたは追加ストリームです
+      </div>
+
+      <table class="lifecycle-table lifecycle-table-reference">
+        <colgroup>
+          <col style="width: 18%">
+          <col style="width: 38%">
+          <col style="width: 44%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>対象</th>
+            <th>初期提供バージョン</th>
+            <th>追加ストリームと期限</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Red Hat Enterprise Linux 8</td>
+            <td>PHP 7.2、MariaDB 10.3、PostgreSQL 10、MySQL 8.0、Python 3.6</td>
+            <td>PHP 8.0: 2024/11、PHP 8.2: 2029/05、MariaDB 10.5: 2026/05、MariaDB 10.11: 2028/05、PostgreSQL 13: 2026/05、PostgreSQL 15: 2028/05、PostgreSQL 16: 2029/05</td>
+          </tr>
+          <tr>
+            <td>Red Hat Enterprise Linux 9</td>
+            <td>PHP 8.0、MariaDB 10.5、PostgreSQL 13、Apache HTTP Server 2.4、NGINX 1.20、Python 3.9はFull Life Application Streams</td>
+            <td>PHP 8.1: 2025/05、PHP 8.2 / 8.3: 2029/05、MariaDB 10.11: 2028/05、PostgreSQL 15: 2028/05、PostgreSQL 16: 2029/05、PostgreSQL 18: 2030/11</td>
+          </tr>
+          <tr>
+            <td>Red Hat Enterprise Linux 10</td>
+            <td>PHP 8.3、MariaDB 10.11、PostgreSQL 16、Apache HTTP Server 2.4、NGINX 1.26、Python 3.12、Valkey 8はFull Life Application Streams</td>
+            <td>PHP 8.4: 2029/05、MariaDB 11.8: 2028/09、MySQL 8.4: 2029/05、PostgreSQL 18: 2030/11</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>PHP 8.0とPHP 8.2のサポート期限</h3>
+      <ul>
+        <li>Red Hat標準リポジトリから導入したパッケージは、PHPコミュニティのEOLではなくRed HatのApplication Streamライフサイクルに従う</li>
+        <li>Red Hat Enterprise Linux 9のPHP 8.0はFull Life Application Streamのため、Red Hat Enterprise Linux 9のライフサイクルに沿って修正がバックポートされる</li>
+        <li>PHP 8.2とPHP 8.3は個別期限を持つ追加ストリームで、Red Hat Enterprise Linux 9では2029/05に終了予定</li>
+        <li>BaseOSとAppStreamは別リポジトリで、Application StreamごとにOS本体より短い期限が設定される場合がある</li>
+        <li><code>dnf module list php</code>と公式ライフサイクル表で、選択中のストリームと期限をセットで確認する</li>
+      </ul>
 
       <h2 id="aws-services">AWSマネージドサービス</h2>
       <table class="lifecycle-table lifecycle-table-reference">
@@ -282,12 +411,12 @@
         <tbody>
           <tr>
             <td>Postfix / OpenSSH / OpenSSL</td>
-            <td>OS標準リポジトリ由来か、外部リポジトリ由来か。RHEL系ではRHEL本体とApplication Streamsの期限を分けて確認します。</td>
+            <td>OS標準リポジトリ由来か、外部リポジトリ由来か。RHEL系ではRHEL本体とApplication Streamsの期限を分けて確認します</td>
             <td><a href="https://access.redhat.com/support/policy/updates/errata">RHEL Life Cycle</a></td>
           </tr>
           <tr>
             <td>Apache HTTP Server / NGINX</td>
-            <td>OS同梱版、Application Streams、外部リポジトリ、コンテナイメージのどれを使っているかを確認します。</td>
+            <td>OS同梱版、Application Streams、外部リポジトリ、コンテナイメージのどれを使っているかを確認します</td>
             <td><a href="https://access.redhat.com/support/policy/updates/rhel-app-streams-life-cycle">RHEL Application Streams</a></td>
           </tr>
           <tr>
@@ -328,51 +457,15 @@
         </tbody>
       </table>
 
-      <h2 id="checklist">確認チェックリスト</h2>
-      <table class="lifecycle-table lifecycle-table-checklist">
-        <colgroup>
-          <col style="width: 24%">
-          <col style="width: 76%">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>区分</th>
-            <th>確認項目</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>OS</td>
-            <td>OS名、メジャーバージョン、AMI ID、カーネル、パッケージリポジトリ、監視/バックアップ/セキュリティエージェント対応</td>
-          </tr>
-          <tr>
-            <td>Database</td>
-            <td>DBエンジン、メジャー/マイナーバージョン、パラメータグループ、拡張機能、バックアップ、メンテナンスウィンドウ</td>
-          </tr>
-          <tr>
-            <td>Runtime</td>
-            <td>Lambdaランタイム、アプリケーションのPython / Node.js / PHP / Javaバージョン、依存ライブラリ、ビルド環境</td>
-          </tr>
-          <tr>
-            <td>Container</td>
-            <td>ECS / EKS、Fargateプラットフォーム、Node AMI、コンテナベースイメージ、Ingress Controller、Helm Chart</td>
-          </tr>
-          <tr>
-            <td>Operations</td>
-            <td>バックアップ取得、復旧手順、監視設定、通知先、切り戻し手順、正常性確認</td>
-          </tr>
-        </tbody>
-      </table>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
       <h2>ページ内</h2>
-      <a class="active" href="#policy">確認方針</a>
-      <a href="#os">OS</a>
-      <a href="#os-differences">OS差分</a>
+      <a class="active" href="#os">OS</a>
+      <a href="#os-differences">Linux世代差分</a>
+      <a href="#rhel-appstream">RHEL Application Streams</a>
       <a href="#aws-services">AWSマネージドサービス</a>
       <a href="#middleware">ミドルウェア・エージェント</a>
-      <a href="#checklist">確認チェックリスト</a>
     </aside>
   </div>
 

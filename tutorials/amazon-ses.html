@@ -50,11 +50,11 @@
       </nav>
 
       <h1>Amazon SES</h1>
-      <p class="lead">Amazon SESのカスタムMAIL FROM設定、Route 53へのMX/TXTレコード登録、Linuxサーバー上のPostfixからSES SMTPへメールを中継する手順を整理します。</p>
+      <p class="lead">Amazon SESのカスタムMAIL FROM設定、Route 53へのMX/TXTレコード登録、Linuxサーバー上のPostfixからSES SMTPへメールを中継する手順を整理します</p>
 
       <div class="callout">
         <strong>📍 掲載方針</strong>
-        <p>実ドメイン、送信先メールアドレス、SMTPユーザー名、SMTPパスワードは記載せず、再利用できる手順として一般化しています。</p>
+        <p>実ドメイン、送信先メールアドレス、SMTPユーザー名、SMTPパスワードは記載せず、再利用できる手順として一般化しています</p>
       </div>
 
       <h2 id="overview">作業概要</h2>
@@ -68,22 +68,22 @@
         <tbody>
           <tr>
             <td>目的</td>
-            <td>Header FromとMAIL FROMドメインを整合させ、DMARCアライメント、到達性、迷惑メール判定回避の観点を改善します。</td>
+            <td>Header FromとMAIL FROMドメインを整合させ、DMARCアライメント、到達性、迷惑メール判定回避の観点を改善します</td>
           </tr>
           <tr>
             <td>対象</td>
-            <td>Amazon SESの検証済みドメインID、Route 53 Hosted Zone、Postfixを利用するLinuxサーバー。</td>
+            <td>Amazon SESの検証済みドメインID、Route 53 Hosted Zone、Postfixを利用するLinuxサーバー</td>
           </tr>
           <tr>
             <td>作業内容</td>
-            <td>カスタムMAIL FROM設定、MX/TXTレコード登録、DNS反映確認、PostfixのSES SMTPリレー設定、送信テスト。</td>
+            <td>カスタムMAIL FROM設定、MX/TXTレコード登録、DNS反映確認、PostfixのSES SMTPリレー設定、送信テスト</td>
           </tr>
         </tbody>
       </table>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        <p>Amazon SESでは、通常はSES既定のMAIL FROMドメインが使用されます。独自ドメインのサブドメインをMAIL FROMに利用する場合は、MXレコードとSPF用TXTレコードをDNSへ登録します。</p>
+        <p>Amazon SESでは、通常はSES既定のMAIL FROMドメインが使用されます。独自ドメインのサブドメインをMAIL FROMに利用する場合は、MXレコードとSPF用TXTレコードをDNSへ登録します</p>
       </div>
 
       <h2 id="parameters">置き換え値</h2>
@@ -96,24 +96,24 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td><code>&lt;DOMAIN_NAME&gt;</code></td><td>SESで検証済みの送信ドメイン。</td><td><code>example.com</code></td></tr>
-          <tr><td><code>&lt;MAIL_FROM_SUBDOMAIN&gt;</code></td><td>カスタムMAIL FROMに使うサブドメイン名。</td><td><code>amazon-ses</code></td></tr>
-          <tr><td><code>&lt;REGION&gt;</code></td><td>Amazon SESを利用するリージョン。</td><td><code>ap-northeast-1</code></td></tr>
-          <tr><td><code>&lt;SES_SMTP_USERNAME&gt;</code></td><td>SES SMTP用のユーザー名。</td><td>SESコンソールで作成</td></tr>
-          <tr><td><code>&lt;SES_SMTP_PASSWORD&gt;</code></td><td>SES SMTP用のパスワード。</td><td>認証情報管理ルールに従って保管</td></tr>
-          <tr><td><code>&lt;RECIPIENT_EMAIL&gt;</code></td><td>送信テストの宛先メールアドレス。</td><td>検証済みメールアドレスなど</td></tr>
+          <tr><td><code>&lt;DOMAIN_NAME&gt;</code></td><td>SESで検証済みの送信ドメイン</td><td><code>example.com</code></td></tr>
+          <tr><td><code>&lt;MAIL_FROM_SUBDOMAIN&gt;</code></td><td>カスタムMAIL FROMに使うサブドメイン名</td><td><code>amazon-ses</code></td></tr>
+          <tr><td><code>&lt;REGION&gt;</code></td><td>Amazon SESを利用するリージョン</td><td><code>ap-northeast-1</code></td></tr>
+          <tr><td><code>&lt;SES_SMTP_USERNAME&gt;</code></td><td>SES SMTP用のユーザー名</td><td>SESコンソールで作成</td></tr>
+          <tr><td><code>&lt;SES_SMTP_PASSWORD&gt;</code></td><td>SES SMTP用のパスワード</td><td>認証情報管理ルールに従って保管</td></tr>
+          <tr><td><code>&lt;RECIPIENT_EMAIL&gt;</code></td><td>送信テストの宛先メールアドレス</td><td>検証済みメールアドレスなど</td></tr>
         </tbody>
       </table>
 
       <h2 id="precheck">作業前確認</h2>
       <ol>
-        <li>Amazon SESの対象Identityが <code>Verified</code> であることを確認します。</li>
-        <li>Route 53のHosted Zoneが対象ドメインを管理していることを確認します。</li>
-        <li>作業前のSES Identity設定、Route 53レコード一覧、DNS応答結果をエビデンスとして取得します。</li>
-        <li>テストメールを送信し、変更前のReceived-SPFやReturn-Pathを確認します。</li>
+        <li>Amazon SESの対象Identityが <code>Verified</code> であることを確認します</li>
+        <li>Route 53のHosted Zoneが対象ドメインを管理していることを確認します</li>
+        <li>作業前のSES Identity設定、Route 53レコード一覧、DNS応答結果をエビデンスとして取得します</li>
+        <li>テストメールを送信し、変更前のReceived-SPFやReturn-Pathを確認します</li>
       </ol>
 
-      <p>作業前にMXレコードとTXTレコードが存在しないことを確認します。</p>
+      <p>作業前にMXレコードとTXTレコードが存在しないことを確認します</p>
       <div class="tab-group" data-tabs>
         <div class="tabs" role="tablist" aria-label="DNS check commands">
           <button class="tab" type="button" role="tab" aria-selected="true" aria-controls="ses-dig">Linux / macOS</button>
@@ -137,21 +137,21 @@ nslookup -type=txt &lt;MAIL_FROM_SUBDOMAIN&gt;.&lt;DOMAIN_NAME&gt;</code></pre>
 
       <h2 id="mail-from">カスタムMAIL FROM設定</h2>
       <ol>
-        <li>Amazon SESコンソールを開き、対象Identityを選択します。</li>
-        <li>Custom MAIL FROM domainの編集画面を開きます。</li>
-        <li>カスタムMAIL FROMドメインの使用を有効化します。</li>
-        <li>MAIL FROM domainに <code>&lt;MAIL_FROM_SUBDOMAIN&gt;</code> を入力します。</li>
-        <li>MX障害時の動作を選択し、設定を保存します。</li>
+        <li>Amazon SESコンソールを開き、対象Identityを選択します</li>
+        <li>Custom MAIL FROM domainの編集画面を開きます</li>
+        <li>カスタムMAIL FROMドメインの使用を有効化します</li>
+        <li>MAIL FROM domainに <code>&lt;MAIL_FROM_SUBDOMAIN&gt;</code> を入力します</li>
+        <li>MX障害時の動作を選択し、設定を保存します</li>
       </ol>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p>MAIL FROMドメインは、SESで検証済みの親ドメイン配下のサブドメインにします。メール送信用や受信用として既に使っているサブドメインは避けます。</p>
+        <p>MAIL FROMドメインは、SESで検証済みの親ドメイン配下のサブドメインにします。メール送信用や受信用として既に使っているサブドメインは避けます</p>
       </div>
       <p>公式情報: <a href="https://docs.aws.amazon.com/ses/latest/dg/mail-from.html">Using a custom MAIL FROM domain - Amazon SES</a></p>
 
       <h2 id="dns">DNSレコード登録</h2>
-      <p>SESが提示するMXレコードとTXTレコードをRoute 53へ登録します。Route 53を同一AWSアカウントで利用している場合は、SESコンソールからRoute 53へレコードを発行できます。</p>
+      <p>SESが提示するMXレコードとTXTレコードをRoute 53へ登録します。Route 53を同一AWSアカウントで利用している場合は、SESコンソールからRoute 53へレコードを発行できます</p>
 
       <table>
         <thead>
@@ -177,44 +177,44 @@ nslookup -type=txt &lt;MAIL_FROM_SUBDOMAIN&gt;.&lt;DOMAIN_NAME&gt;</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p>カスタムMAIL FROMドメインには、SES用のMXレコードを1つだけ登録します。複数のMXレコードがあると、SES側の検証に失敗する場合があります。</p>
+        <p>カスタムMAIL FROMドメインには、SES用のMXレコードを1つだけ登録します。複数のMXレコードがあると、SES側の検証に失敗する場合があります</p>
       </div>
 
       <h2 id="dns-check">DNS反映確認</h2>
-      <p>Route 53登録後、MXレコードとTXTレコードが名前解決できることを確認します。</p>
+      <p>Route 53登録後、MXレコードとTXTレコードが名前解決できることを確認します</p>
       <div class="code">
         <div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>dig MX &lt;MAIL_FROM_SUBDOMAIN&gt;.&lt;DOMAIN_NAME&gt;
 dig TXT &lt;MAIL_FROM_SUBDOMAIN&gt;.&lt;DOMAIN_NAME&gt;</code></pre>
       </div>
 
-      <p>Amazon SESコンソールでは、Custom MAIL FROM domainの状態が <code>Success</code> または検証済み相当の表示になっていることを確認します。</p>
+      <p>Amazon SESコンソールでは、Custom MAIL FROM domainの状態が <code>Success</code> または検証済み相当の表示になっていることを確認します</p>
 
       <h2 id="smtp-credentials">SMTP認証情報</h2>
-      <p>PostfixからSES SMTPエンドポイントへ送信する場合は、SES SMTP用の認証情報を作成します。</p>
+      <p>PostfixからSES SMTPエンドポイントへ送信する場合は、SES SMTP用の認証情報を作成します</p>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p>SES SMTPのユーザー名とパスワードは、通常のAWSアクセスキーとは別物です。SMTPパスワードはAWSシークレットアクセスキーではないため、SES SMTP用として発行した値を利用します。</p>
+        <p>SES SMTPのユーザー名とパスワードは、通常のAWSアクセスキーとは別物です。SMTPパスワードはAWSシークレットアクセスキーではないため、SES SMTP用として発行した値を利用します</p>
       </div>
       <p>公式情報: <a href="https://docs.aws.amazon.com/ses/latest/dg/smtp-credentials.html">Obtaining Amazon SES SMTP credentials - Amazon SES</a></p>
 
       <h2 id="postfix">PostfixからSES SMTPへリレー</h2>
-      <p>LinuxサーバーからSES経由でメール送信するため、Postfix、SASL認証パッケージ、メール送信テスト用コマンドを導入します。</p>
+      <p>LinuxサーバーからSES経由でメール送信するため、Postfix、SASL認証パッケージ、メール送信テスト用コマンドを導入します</p>
       <p>公式情報: <a href="https://docs.aws.amazon.com/ses/latest/dg/postfix.html">Integrating Amazon SES with Postfix - Amazon SES</a></p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>dnf install -y postfix cyrus-sasl-plain mailx</code></pre>
       </div>
 
-      <p>Postfix設定ファイルを退避します。</p>
+      <p>Postfix設定ファイルを退避します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>cp -pi /etc/postfix/main.cf /etc/postfix/main.cf.bak
 vi /etc/postfix/main.cf</code></pre>
       </div>
 
-      <p>SES SMTPエンドポイントをリレー先に設定します。</p>
+      <p>SES SMTPエンドポイントをリレー先に設定します</p>
       <div class="code">
         <div class="code-header"><span>main.cf</span><button class="copy" type="button">Copy</button></div>
         <pre><code>relayhost = [email-smtp.&lt;REGION&gt;.amazonaws.com]:587
@@ -226,7 +226,7 @@ smtp_tls_note_starttls_offer = yes
 smtp_tls_CAfile = /etc/ssl/certs/ca-bundle.crt</code></pre>
       </div>
 
-      <p>SMTP認証情報ファイルを作成します。</p>
+      <p>SMTP認証情報ファイルを作成します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>vi /etc/postfix/sasl_passwd</code></pre>
@@ -237,7 +237,7 @@ smtp_tls_CAfile = /etc/ssl/certs/ca-bundle.crt</code></pre>
         <pre><code>[email-smtp.&lt;REGION&gt;.amazonaws.com]:587 &lt;SES_SMTP_USERNAME&gt;:&lt;SES_SMTP_PASSWORD&gt;</code></pre>
       </div>
 
-      <p>認証情報ファイルの権限を制限し、Postfixが参照するハッシュDBを作成します。</p>
+      <p>認証情報ファイルの権限を制限し、Postfixが参照するハッシュDBを作成します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>chown root:root /etc/postfix/sasl_passwd
@@ -247,7 +247,7 @@ chown root:root /etc/postfix/sasl_passwd.db
 chmod 600 /etc/postfix/sasl_passwd.db</code></pre>
       </div>
 
-      <p>Postfixを再起動し、状態を確認します。</p>
+      <p>Postfixを再起動し、状態を確認します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>systemctl restart postfix.service
@@ -256,19 +256,19 @@ ps aux | grep postfix</code></pre>
       </div>
 
       <h2 id="send-test">送信テスト</h2>
-      <p>テストメールを送信します。SESアカウントがサンドボックスの場合は、検証済みの宛先に対して実施します。</p>
+      <p>テストメールを送信します。SESアカウントがサンドボックスの場合は、検証済みの宛先に対して実施します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>mail -s "test mail" &lt;RECIPIENT_EMAIL&gt;</code></pre>
       </div>
 
-      <p>送信ログを確認します。</p>
+      <p>送信ログを確認します</p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>tail -30 /var/log/maillog</code></pre>
       </div>
 
-      <p>受信メールのソースを開き、Received-SPFやReturn-Pathに <code>&lt;MAIL_FROM_SUBDOMAIN&gt;.&lt;DOMAIN_NAME&gt;</code> が反映されていることを確認します。</p>
+      <p>受信メールのソースを開き、Received-SPFやReturn-Pathに <code>&lt;MAIL_FROM_SUBDOMAIN&gt;.&lt;DOMAIN_NAME&gt;</code> が反映されていることを確認します</p>
 
       <h2 id="checklist">確認チェックリスト</h2>
       <table>
@@ -279,10 +279,10 @@ ps aux | grep postfix</code></pre>
           </tr>
         </thead>
         <tbody>
-          <tr><td>作業前</td><td>SES Identity、Route 53レコード、DNS応答、変更前テストメールのヘッダー。</td></tr>
-          <tr><td>設定後</td><td>Custom MAIL FROM domainの状態、MX/TXTレコード、DNS反映、Postfix設定差分。</td></tr>
-          <tr><td>送信後</td><td>メール到達、Postfixログ、SES側の送信結果、Received-SPF、Return-Path。</td></tr>
-          <tr><td>切り戻し</td><td>カスタムMAIL FROM設定解除、Route 53レコード削除、Postfix設定退避ファイルから復旧。</td></tr>
+          <tr><td>作業前</td><td>SES Identity、Route 53レコード、DNS応答、変更前テストメールのヘッダー</td></tr>
+          <tr><td>設定後</td><td>Custom MAIL FROM domainの状態、MX/TXTレコード、DNS反映、Postfix設定差分</td></tr>
+          <tr><td>送信後</td><td>メール到達、Postfixログ、SES側の送信結果、Received-SPF、Return-Path</td></tr>
+          <tr><td>切り戻し</td><td>カスタムMAIL FROM設定解除、Route 53レコード削除、Postfix設定退避ファイルから復旧</td></tr>
         </tbody>
       </table>
 
