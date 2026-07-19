@@ -49,9 +49,8 @@
         <span>手順一覧</span>
       </nav>
 
-      <p class="eyebrow">AWS / CLI / Reference</p>
       <h1>AWS CLI コマンドリファレンス</h1>
-      <p class="lead">日常運用でよく使うAWS CLIの基本確認、IAM、Security Group、Prefix List、SNSなどのコマンドを整理します。</p>
+      <p class="lead">日常運用でよく使うAWS CLIの基本確認、IAM、Security Group、Prefix List、SNS、EC2 / EBS、Systems Manager、CloudFormationなどのコマンドを整理します。</p>
 
       <div class="callout">
         <strong>📍 使い分け</strong>
@@ -121,13 +120,16 @@ aws --version</code></pre>
         <pre><code>aws configure set region ap-northeast-1</code></pre>
       </div>
 
-      <h2 id="iam">AWS Identity and Access Management (IAM) / AWS IAM Identity Center</h2>
-      <p>原則として人のログイン用途はAWS IAM Identity Centerを優先します。AWS Identity and Access Management (IAM) のIAMユーザーを作成する場合は、用途、権限、利用期限、アクセスキーの有無を事前に確認します。</p>
+      <h2 id="iam">AWS Identity and Access Management (IAM)</h2>
+      <p>人のログイン用途はAWS IAM Identity Centerの利用を優先します。ここでは、個別要件でIAMユーザー、IAMグループ、IAMポリシー、アクセスキー、コンソールログインプロファイルをCLIで扱う場合の基本操作を整理します。詳細は <a href="https://docs.aws.amazon.com/cli/latest/reference/iam/create-group.html">create-group</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/iam/attach-group-policy.html">attach-group-policy</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/iam/create-policy.html">create-policy</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/iam/create-access-key.html">create-access-key</a>、<a href="https://docs.aws.amazon.com/cli/latest/reference/iam/create-login-profile.html">create-login-profile</a> を確認します。</p>
       <table>
         <thead><tr><th>値</th><th>説明</th></tr></thead>
         <tbody>
           <tr><td><code>&lt;USER_NAME&gt;</code></td><td>作成または確認するIAMユーザー名</td></tr>
           <tr><td><code>&lt;GROUP_NAME&gt;</code></td><td>ユーザーを所属させるIAMグループ名</td></tr>
+          <tr><td><code>&lt;POLICY_NAME&gt;</code></td><td>作成するカスタマー管理ポリシー名</td></tr>
+          <tr><td><code>&lt;CUSTOM_POLICY_ARN&gt;</code></td><td>作成済みカスタマー管理ポリシーのARN</td></tr>
+          <tr><td><code>&lt;TEMPORARY_PASSWORD&gt;</code></td><td>初回ログイン用の一時パスワード</td></tr>
         </tbody>
       </table>
 
@@ -137,16 +139,87 @@ aws --version</code></pre>
         <pre><code>aws iam create-user --user-name &lt;USER_NAME&gt;</code></pre>
       </div>
 
+      <p>IAMグループを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam create-group --group-name &lt;GROUP_NAME&gt;</code></pre>
+      </div>
+
       <p>作成したIAMユーザーを既存グループに追加します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws iam add-user-to-group --user-name &lt;USER_NAME&gt; --group-name &lt;GROUP_NAME&gt;</code></pre>
       </div>
 
+      <p>AWS管理ポリシーをIAMグループにアタッチします。例では読み取り専用の <code>ReadOnlyAccess</code> を使用します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam attach-group-policy --group-name &lt;GROUP_NAME&gt; --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess</code></pre>
+      </div>
+
+      <p>カスタマー管理ポリシーを作成する場合は、ポリシードキュメントをJSONで用意します。</p>
+      <div class="code">
+        <div class="code-header"><span>json</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</code></pre>
+      </div>
+
+      <p>JSONファイルからカスタマー管理ポリシーを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam create-policy --policy-name &lt;POLICY_NAME&gt; --policy-document file://policy.json</code></pre>
+      </div>
+
+      <p>作成したカスタマー管理ポリシーをIAMグループにアタッチします。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam attach-group-policy --group-name &lt;GROUP_NAME&gt; --policy-arn &lt;CUSTOM_POLICY_ARN&gt;</code></pre>
+      </div>
+
+      <p>IAMグループにアタッチされているポリシーを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam list-attached-group-policies --group-name &lt;GROUP_NAME&gt;</code></pre>
+      </div>
+
       <p>ユーザーの所属グループを確認します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws iam list-groups-for-user --user-name &lt;USER_NAME&gt;</code></pre>
+      </div>
+
+      <p>IAMユーザーのアクセスキーを発行します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam create-access-key --user-name &lt;USER_NAME&gt;</code></pre>
+      </div>
+
+      <div class="notice notice-warning">
+        <strong>⚠️ 注意</strong>
+        <p>CLIでアクセスキーを発行した場合、マネジメントコンソールのようなCSVファイルは自動ダウンロードされません。</p>
+        <p><code>AccessKeyId</code> と <code>SecretAccessKey</code> はコマンド実行結果に一度だけ表示されます。必要な場合は、安全な場所へ即時保管します。</p>
+      </div>
+
+      <p>IAMユーザーへコンソールログイン用のログインプロファイルを作成します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws iam create-login-profile --user-name &lt;USER_NAME&gt; --password "&lt;TEMPORARY_PASSWORD&gt;" --password-reset-required</code></pre>
+      </div>
+
+      <div class="callout">
+        <strong>ℹ️ 情報</strong>
+        <p>CLIでコンソールログインを有効化する場合は、<code>create-login-profile</code> でパスワードを指定します。</p>
+        <p>GUIのように自動生成パスワードをCSVでダウンロードする流れではありません。実運用では、パスワードをコマンド履歴へ残さない運用、初回変更必須、利用期限の管理をセットで扱います。</p>
       </div>
 
       <h2 id="security-group">Security Group ルール追加・削除</h2>
@@ -157,6 +230,7 @@ aws --version</code></pre>
         <tbody>
           <tr><td><code>&lt;SECURITY_GROUP_ID&gt;</code></td><td>変更対象のSecurity Group ID</td></tr>
           <tr><td><code>&lt;CIDR&gt;</code></td><td>許可または削除する送信元CIDR。例: <code>203.0.113.10/32</code></td></tr>
+          <tr><td><code>&lt;DESCRIPTION&gt;</code></td><td>Security Groupルールの説明。例: <code>office-a temporary access</code></td></tr>
         </tbody>
       </table>
 
@@ -172,10 +246,22 @@ aws --version</code></pre>
         <pre><code>aws ec2 authorize-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --protocol tcp --port 80 --cidr &lt;CIDR&gt;</code></pre>
       </div>
 
+      <p>説明欄を付けて80/tcpを許可する例です。ルールの説明はトップレベルの <code>--description</code> ではなく、<code>--ip-permissions</code> の <code>IpRanges</code> 側に指定します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 authorize-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --ip-permissions 'IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=&lt;CIDR&gt;,Description="&lt;DESCRIPTION&gt;"}]'</code></pre>
+      </div>
+
       <p>全プロトコル・全ポートを許可する例です。検証や一時作業以外では原則として避け、作業後に必ず削除します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws ec2 authorize-security-group-ingress --group-id &lt;SECURITY_GROUP_ID&gt; --protocol -1 --cidr &lt;CIDR&gt;</code></pre>
+      </div>
+
+      <p>Security GroupルールID、CIDR、説明欄を一覧で確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-security-group-rules --filters Name=group-id,Values=&lt;SECURITY_GROUP_ID&gt; --query "SecurityGroupRules[*].[SecurityGroupRuleId,IsEgress,IpProtocol,FromPort,ToPort,CidrIpv4,Description]" --output table</code></pre>
       </div>
 
       <p>80/tcpの許可ルールを削除する例です。</p>
@@ -245,11 +331,27 @@ aws --version</code></pre>
       </div>
 
       <h2 id="sns">SNS Topic・Subscription作成</h2>
-      <p>通知先を作成する場合は、Topic、Subscription、確認メールの承認、通知テストまでを一連の手順として扱います。</p>
+      <p>通知先を作成する場合は、Topic、Subscription、確認メールの承認、通知テスト、設定確認、不要時の解除までを一連の手順として扱います。詳細は <a href="https://docs.aws.amazon.com/cli/latest/reference/sns/subscribe.html">subscribe</a> を確認します。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;TOPIC_NAME&gt;</code></td><td>作成するSNS Topic名。</td></tr>
+          <tr><td><code>&lt;TOPIC_ARN&gt;</code></td><td>作成済みSNS TopicのARN。</td></tr>
+          <tr><td><code>&lt;MAIL_ADDRESS&gt;</code></td><td>通知先メールアドレス。</td></tr>
+          <tr><td><code>&lt;SUBSCRIPTION_ARN&gt;</code></td><td>SubscriptionのARN。承認前は <code>PendingConfirmation</code> になります。</td></tr>
+        </tbody>
+      </table>
+
       <p>SNS Topicを作成します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws sns create-topic --name &lt;TOPIC_NAME&gt;</code></pre>
+      </div>
+
+      <p>SNS Topic一覧を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns list-topics</code></pre>
       </div>
 
       <p>メール通知先をSubscriptionとして登録します。</p>
@@ -258,20 +360,127 @@ aws --version</code></pre>
         <pre><code>aws sns subscribe --topic-arn &lt;TOPIC_ARN&gt; --protocol email --notification-endpoint &lt;MAIL_ADDRESS&gt;</code></pre>
       </div>
 
+      <div class="callout">
+        <strong>ℹ️ 情報</strong>
+        <p><code>email</code> プロトコルのSubscriptionは、通知先に届く確認メールを承認するまで配信されません。</p>
+        <p>承認前はSubscription ARNが <code>PendingConfirmation</code> と表示されます。</p>
+      </div>
+
+      <p>Topicに紐づくSubscriptionを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns list-subscriptions-by-topic --topic-arn &lt;TOPIC_ARN&gt;</code></pre>
+      </div>
+
+      <p>Topic属性を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns get-topic-attributes --topic-arn &lt;TOPIC_ARN&gt;</code></pre>
+      </div>
+
       <p>通知テストを実行します。</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws sns publish --topic-arn &lt;TOPIC_ARN&gt; --message "notification test"</code></pre>
+      </div>
+
+      <p>不要になったSubscriptionを解除します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws sns unsubscribe --subscription-arn &lt;SUBSCRIPTION_ARN&gt;</code></pre>
+      </div>
+
+      <h2 id="ec2">EC2 インスタンス確認</h2>
+      <p>問い合わせ対応や作業前確認では、インスタンスID、Nameタグ、状態、Private IP、Public IPを一覧化して対象を取り違えないようにします。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-instances --query "Reservations[].Instances[].{Name:Tags[?Key=='Name']|[0].Value,InstanceId:InstanceId,State:State.Name,PrivateIp:PrivateIpAddress,PublicIp:PublicIpAddress}" --output table</code></pre>
+      </div>
+
+      <p>特定インスタンスの詳細を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-instances --instance-ids &lt;INSTANCE_ID&gt;</code></pre>
+      </div>
+
+      <h2 id="ebs">EBS ボリューム確認</h2>
+      <p>ディスク増強や作業前確認では、インスタンスに紐づくEBS Volume、サイズ、タイプ、デバイス名を確認します。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;INSTANCE_ID&gt;</code></td><td>確認対象のEC2インスタンスID。</td></tr>
+          <tr><td><code>&lt;VOLUME_ID&gt;</code></td><td>確認対象のEBS Volume ID。</td></tr>
+        </tbody>
+      </table>
+
+      <p>インスタンスにアタッチされているEBS Volumeを一覧で確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-volumes --filters Name=attachment.instance-id,Values=&lt;INSTANCE_ID&gt; --query "Volumes[].{VolumeId:VolumeId,Size:Size,Type:VolumeType,State:State,Device:Attachments[0].Device}" --output table</code></pre>
+      </div>
+
+      <p>EBS Volumeの詳細を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ec2 describe-volumes --volume-ids &lt;VOLUME_ID&gt;</code></pre>
+      </div>
+
+      <h2 id="ssm">Systems Manager Run Command</h2>
+      <p>SSHやRDPでログインせずに、対象インスタンス上で確認コマンドを実行します。SSM Agent、IAMロール、ネットワーク経路が前提です。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;INSTANCE_ID&gt;</code></td><td>Run Commandを実行する対象インスタンスID。</td></tr>
+          <tr><td><code>&lt;SERVICE_NAME&gt;</code></td><td>確認するサービス名。例: <code>httpd</code></td></tr>
+          <tr><td><code>&lt;COMMAND_ID&gt;</code></td><td><code>send-command</code> 実行後に返されるCommand ID。</td></tr>
+        </tbody>
+      </table>
+
+      <p>Linuxインスタンスでサービス状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ssm send-command --instance-ids &lt;INSTANCE_ID&gt; --document-name "AWS-RunShellScript" --parameters commands="systemctl status &lt;SERVICE_NAME&gt; --no-pager" --comment "check service status"</code></pre>
+      </div>
+
+      <p>Run Commandの実行結果を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws ssm list-command-invocations --command-id &lt;COMMAND_ID&gt; --details</code></pre>
+      </div>
+
+      <h2 id="cloudformation">CloudFormation スタック確認</h2>
+      <p>スタック作成・更新後の問い合わせでは、ステータスと直近イベントをCLIで素早く確認します。デプロイ設計や変更セットの詳細は <a href="cloudformation.html">CloudFormation 運用手順集</a> に分けます。</p>
+      <table>
+        <thead><tr><th>値</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;STACK_NAME&gt;</code></td><td>確認対象のCloudFormationスタック名。</td></tr>
+        </tbody>
+      </table>
+
+      <p>スタックの状態を確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws cloudformation describe-stacks --stack-name &lt;STACK_NAME&gt; --query "Stacks[0].[StackName,StackStatus,CreationTime]" --output table</code></pre>
+      </div>
+
+      <p>直近のスタックイベントを確認します。</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>aws cloudformation describe-stack-events --stack-name &lt;STACK_NAME&gt; --query "StackEvents[0:10].[Timestamp,ResourceStatus,LogicalResourceId,ResourceStatusReason]" --output table</code></pre>
       </div>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
       <h2>ページ内</h2>
       <a class="active" href="#setup">AWS CLIの初期設定</a>
-      <a href="#iam">IAM / IAM Identity Center</a>
+      <a href="#iam">IAM</a>
       <a href="#security-group">Security Group</a>
       <a href="#prefix-list">Prefix List作成</a>
       <a href="#sns">SNS</a>
+      <a href="#ec2">EC2</a>
+      <a href="#ebs">EBS</a>
+      <a href="#ssm">Systems Manager</a>
+      <a href="#cloudformation">CloudFormation</a>
     </aside>
   </div>
   <script src="../assets/app.js"></script>
