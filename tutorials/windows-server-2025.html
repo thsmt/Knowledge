@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>[構築] Windows Server 2022 | Documentation</title>
-  <meta name="description" content="Amazon EC2上のWindows Server 2022を手動構築するための手順。">
+  <title>[構築] Windows Server 2025 | Documentation</title>
+  <meta name="description" content="Amazon EC2上のWindows Server 2025を手動構築するための手順。">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -36,8 +36,8 @@
       <a href="os-packages.html">OSパッケージ一覧・導入元確認</a>
       <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
       <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
-      <a class="active" href="windows-server-2022.html">[構築] Windows Server 2022</a>
-      <a href="windows-server-2025.html">[構築] Windows Server 2025</a>
+      <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
+      <a class="active" href="windows-server-2025.html">[構築] Windows Server 2025</a>
       <a href="zabbix-ops.html">Zabbix 6.0</a>
       <a href="awx-ansible.html">AWX / Ansible</a>
       <a href="eol.html">EOL / ライフサイクル一覧表</a>
@@ -46,7 +46,7 @@
 
     <main>
       <div class="breadcrumb"><a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a><span>&gt;</span><span>トピック</span></div>
-      <h1>[構築] Windows Server 2022</h1>
+      <h1>[構築] Windows Server 2025</h1>
 
       <div class="callout">
         <strong>ℹ️ 前提</strong>
@@ -56,7 +56,7 @@
       <h2 id="launch">0. 起動時の確認</h2>
 
       <h3 id="launch-ami">0.1 AMIとキーペア</h3>
-      <p>AWSが提供するWindows Server 2022 AMIを選択し、秘密鍵を安全に管理できるRSAキーペアを指定します</p>
+      <p>AWSが提供するWindows Server 2025 AMIを選択し、秘密鍵を安全に管理できるRSAキーペアを指定します</p>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
@@ -79,6 +79,22 @@
           <tr><td><code>&lt;VOLUME_DRIVE_LETTER&gt;</code></td><td>追加ボリュームへ割り当てるドライブ文字。例: <code>D:</code></td></tr>
         </tbody>
       </table>
+
+      <h3 id="windows-2025-differences">0.3 Windows Server 2025の既定値差分</h3>
+      <table>
+        <thead><tr><th>機能</th><th>Windows Server 2025での確認点</th></tr></thead>
+        <tbody>
+          <tr><td>Credential Guard</td><td>要件を満たすデバイスでは既定で有効。仮想化ベースのセキュリティと認証情報保護への影響を確認</td></tr>
+          <tr><td>OpenSSH Server</td><td>コンポーネントが既定でインストール済み。使用する場合だけサービス起動と通信許可を設定</td></tr>
+          <tr><td>SMB署名</td><td>送信SMB接続で署名が既定必須。旧NASや古いSMB実装との互換性を確認</td></tr>
+          <tr><td>SMB認証レート制限</td><td>SMBサーバーで既定有効。不正な認証試行の間隔を設け、総当たり攻撃を抑制</td></tr>
+          <tr><td>SMBファイアウォール</td><td>新しい共有ルールではNetBIOSポート137から139を既定で含めない</td></tr>
+          <tr><td>RRAS</td><td>新規構成ではPPTPとL2TPを既定で受け付けない。IKEv2またはSSTPを優先</td></tr>
+          <tr><td>WinGet</td><td>コマンドラインパッケージ管理ツールが標準搭載</td></tr>
+        </tbody>
+      </table>
+
+      <p><a href="https://learn.microsoft.com/en-us/windows-server/get-started/whats-new-windows-server-2025">Microsoft公式: Windows Server 2025の新機能</a></p>
 
       <h2 id="connect">1. Windowsインスタンス接続</h2>
 
@@ -175,7 +191,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        2018年8月以降のAWS提供Windows AMIは、Amazon Time Sync Serviceを既定で使用します。Windows Server 2022の標準AMIでは追加のNTP設定は不要です。ドメイン参加後は、Active Directoryの時刻階層を含む設計に従います
+        2018年8月以降のAWS提供Windows AMIは、Amazon Time Sync Serviceを既定で使用します。Windows Server 2025の標準AMIでは追加のNTP設定は不要です。ドメイン参加後は、Active Directoryの時刻階層を含む設計に従います
       </div>
 
       <p><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configure-ec2-ntp.html">AWS公式: Amazon Time Sync Service</a></p>
@@ -324,7 +340,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       </div>
 
       <h4 id="cloudwatch-config-parameter-store">4.2.2 Parameter Storeへ保存</h4>
-      <p>複数台へ同じ設定を配布する場合は、承認済みのJSONファイルをAWS Systems Manager Parameter Storeへ保存します。AWS管理ポリシーの<code>CloudWatchAgentServerPolicy</code>を利用する場合は、<code>AmazonCloudWatch-WindowsServer2022</code>のように<code>AmazonCloudWatch-</code>で始まるパラメータ名を指定します</p>
+      <p>複数台へ同じ設定を配布する場合は、承認済みのJSONファイルをAWS Systems Manager Parameter Storeへ保存します。AWS管理ポリシーの<code>CloudWatchAgentServerPolicy</code>を利用する場合は、<code>AmazonCloudWatch-WindowsServer2025</code>のように<code>AmazonCloudWatch-</code>で始まるパラメータ名を指定します</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws ssm put-parameter `
@@ -363,7 +379,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       <p><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/installing-cloudwatch-agent-ssm.html">AWS公式: Systems ManagerによるCloudWatch Agentの設定と起動</a></p>
 
       <h3 id="ec2launch-sysprep">4.4 EC2Launch v2とAMI横展開</h3>
-      <p>AWS提供のWindows Server 2022 AMIにはEC2Launch v2が含まれます。構築済みインスタンスをカスタムAMIとして横展開する場合は、EC2Launch v2からSysprepを実行してインスタンス固有情報を一般化します</p>
+      <p>AWS提供のWindows Server 2025 AMIにはEC2Launch v2が含まれます。構築済みインスタンスをカスタムAMIとして横展開する場合は、EC2Launch v2からSysprepを実行してインスタンス固有情報を一般化します</p>
       <ol>
         <li>構築作業とWindows Updateを完了</li>
         <li>一時ファイル、個別の認証情報、作業用アカウント、固定IP設定などを除去</li>
@@ -511,6 +527,57 @@ wevtutil sl Security /ms:268435456 /rt:false</code></pre>
       </div>
 
       <p><a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/troubleshoot-stop-errors-best-practices-dump-configuration-recommendations">Microsoft公式: クラッシュダンプ設定の推奨事項</a></p>
+
+      <h3 id="windows-2025-security">5.3 Windows Server 2025固有設定の確認</h3>
+
+      <h4 id="credential-guard">5.3.1 Credential Guard</h4>
+      <p>Credential Guardの構成状態を確認します</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Get-CimInstance -ClassName Win32_DeviceGuard `
+  -Namespace root\Microsoft\Windows\DeviceGuard |
+  Select-Object SecurityServicesConfigured, SecurityServicesRunning, VirtualizationBasedSecurityStatus</code></pre>
+      </div>
+
+      <div class="callout">
+        <strong>ℹ️ 情報</strong>
+        Credential GuardはNTLMハッシュやKerberos TGTなどの資格情報を仮想化ベースのセキュリティで分離します。認証方式やセキュリティ製品との互換性を確認し、理由なく無効化しません
+      </div>
+
+      <p><a href="https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/">Microsoft公式: Credential Guard</a></p>
+
+      <h4 id="openssh-server">5.3.2 OpenSSH Server</h4>
+      <p>インストール状態とサービス状態を確認します</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Server*'
+Get-Service sshd -ErrorAction SilentlyContinue</code></pre>
+      </div>
+
+      <p>SSH接続を利用する場合だけ、サービスを自動起動へ変更します</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Set-Service -Name sshd -StartupType Automatic
+Start-Service sshd</code></pre>
+      </div>
+
+      <div class="callout callout-warning">
+        <strong>⚠️ 注意</strong>
+        OpenSSH Serverを使用しない場合はサービスを起動せず、Security GroupでTCP/22を許可しません。使用する場合は公開鍵認証、接続元制限、ログ収集を設計します
+      </div>
+
+      <h4 id="smb-security">5.3.3 SMBセキュリティ</h4>
+      <p>SMBクライアントとサーバーの署名、暗号化、認証関連設定を確認します</p>
+      <div class="code">
+        <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
+        <pre><code>Get-SmbClientConfiguration | Format-List
+Get-SmbServerConfiguration | Format-List</code></pre>
+      </div>
+
+      <div class="callout callout-warning">
+        <strong>⚠️ 注意</strong>
+        署名必須を解除すると中間者攻撃への耐性が低下します。接続できない機器がある場合は、Windows Server側の既定値を緩和する前にNAS、ファイルサーバー、クライアント側のSMB対応状況を確認します
+      </div>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
