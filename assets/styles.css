@@ -535,6 +535,27 @@ figure img {
   border-radius: 6px;
 }
 
+/* Keep console screenshots readable without letting them dominate the article. */
+figure.screenshot-wide {
+  max-width: 720px;
+}
+
+figure.screenshot-medium {
+  max-width: 620px;
+}
+
+figure.screenshot-compact {
+  max-width: 480px;
+}
+
+@media (max-width: 800px) {
+  figure.screenshot-wide,
+  figure.screenshot-medium,
+  figure.screenshot-compact {
+    max-width: 100%;
+  }
+}
+
 figcaption {
   margin-top: 8px;
   color: var(--muted);
