@@ -133,6 +133,71 @@
       </div>
       <p>公式情報: <a href="https://docs.aws.amazon.com/workspaces/latest/userguide/supported-features.html">Supported features by protocol type for WorkSpaces</a></p>
 
+      <h3 id="protocol-change">PCoIPからDCV (WSP) へのプロトコル変更</h3>
+      <p>PCoIPバンドルから作成したWindows WorkSpaceは、既存のWorkSpaceを保持したままストリーミングプロトコルを変更できます。PCoIPのサポート終了に備え、PCoIP WorkSpaceを検証用に作成し、DCV (WSP) へ変更する手順を確認します。</p>
+
+      <div class="callout callout-warning">
+        <strong>⚠️ 本番変更前に検証します</strong>
+        <p>プロトコル変更前に、非本番WorkSpaceでクライアント、ネットワーク経路、印刷、周辺機器、アプリケーションを検証します。変更中はセッションのプロビジョニングがブロックされるため、利用者が接続できない時間帯を設けます。</p>
+      </div>
+
+      <h4>直接変更の対象と事前確認</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>確認内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>作成元バンドル</td>
+            <td>直接変更できるのはPCoIPバンドルから作成したWindows WorkSpaceです。現在の表示プロトコルだけでなく、作成元バンドルを確認します</td>
+          </tr>
+          <tr>
+            <td>状態</td>
+            <td>対象WorkSpaceを<code>AVAILABLE</code>にします。保留中の変更、再起動、イメージ作成などの作業は完了させます</td>
+          </tr>
+          <tr>
+            <td>DCVの前提</td>
+            <td>利用者のWorkSpacesクライアント、リージョン、バンドル、DCVに必要なIPアドレスとポートの要件を確認します</td>
+          </tr>
+          <tr>
+            <td>Web Access</td>
+            <td>PCoIPからDCVへ変更した後、再びPCoIPへ戻すとWeb Accessでは接続できなくなります</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>AWS CLIでPCoIPからWSPへ変更する</h4>
+      <ol>
+        <li>対象WorkSpaceのID、状態、現在のプロトコルを確認します</li>
+        <li>プロトコルを<code>WSP</code>へ変更します。<code>Protocols</code>の値は大文字・小文字を区別するため、<code>WSP</code>または<code>PCOIP</code>を使用します</li>
+        <li>最大40分程度待機し、再度状態とプロトコルを確認します</li>
+      </ol>
+      <pre><code class="language-bash">aws workspaces describe-workspaces \
+  --workspace-id ws-xxxxxxxx \
+  --query 'Workspaces[0].{WorkspaceId:WorkspaceId,State:State,BundleId:BundleId,Protocols:WorkspaceProperties.Protocols}' \
+  --output table
+
+aws workspaces modify-workspace-properties \
+  --workspace-id ws-xxxxxxxx \
+  --workspace-properties "Protocols=[WSP]"
+
+aws workspaces describe-workspaces \
+  --workspace-id ws-xxxxxxxx \
+  --query 'Workspaces[0].{WorkspaceId:WorkspaceId,State:State,Protocols:WorkspaceProperties.Protocols}' \
+  --output table</code></pre>
+      <p>コンソールから実施する場合は、対象WorkSpaceを選択して「アクション」から「プロトコルの変更」を選びます。完了後は、ステータスが<code>AVAILABLE</code>であり、プロトコルが<code>DCV (WSP)</code>になったことを確認します。</p>
+
+      <h4>変更失敗時の扱い</h4>
+      <p>変更開始前にWorkSpaceのチェックポイントスナップショットが作成されます。変更が失敗した場合は、<code>RESOURCE: PROTOCOL</code>および<code>STATE: UPDATE_FAILED</code>を確認し、変更前のチェックポイントへ復元してから再試行します。成功後にもスナップショットが作成されるため、復元時には変更後のプロトコルが対象になります。</p>
+
+      <h4>WSPバンドルから作成したWorkSpace</h4>
+      <p>WSPバンドルから作成したWorkSpaceは、上記の直接変更機能の対象外です。バンドルまたはOSを変更する必要がある場合は、移行先としてコンソールに提示される対応バンドルへのWorkSpace移行を検討します。移行では、ルートボリューム (Cドライブ) のデータ、アプリケーション、設定、レジストリ変更は保持されません。ユーザーボリューム (Dドライブ) は最後のスナップショットから再作成されるため、最後のスナップショット以降の変更も失われます。</p>
+      <p>移行前にCドライブのデータを退避し、最後のユーザーボリュームスナップショットの時刻を確認します。移行後は新しいWorkSpace ID、コンピューター名、IPアドレスが割り当てられ、旧プロファイルは<code>.NotMigrated</code>サフィックス付きで残ります。PCoIPはサポート終了予定のため、新規の移行先としてPCoIPを選ぶのではなく、DCV (WSP) を前提にターゲットバンドルを選定します。</p>
+      <p>公式情報: <a href="https://docs.aws.amazon.com/workspaces/latest/adminguide/modify-workspaces.html#modify_protocols">Modify protocols</a>、<a href="https://docs.aws.amazon.com/workspaces/latest/adminguide/workspaces-port-requirements.html">IP address and port requirements for WorkSpaces</a>、<a href="https://docs.aws.amazon.com/ja_jp/workspaces/latest/adminguide/migrate-workspaces.html">WorkSpace の移行</a></p>
+
       <h2 id="flow">構築フロー</h2>
       <ol>
         <li>WorkSpaces Personalで使用するVPC、2つの異なるAZのサブネット、AWS Managed Microsoft ADを準備します</li>
@@ -396,6 +461,7 @@ Get-WindowsCapability -Online |
       <a class="active" href="#information">情報</a>
       <a href="#workshop-overview">ワークショップの前提</a>
       <a href="#protocol-selection">プロトコル選定</a>
+      <a href="#protocol-change">PCoIPからWSPへの変更</a>
       <a href="#flow">構築フロー</a>
       <a href="#directory">Directory Service連携</a>
       <a href="#directory-accounts">アカウントの役割</a>
