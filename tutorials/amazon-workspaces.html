@@ -303,60 +303,8 @@
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p>カスタムイメージを作成する予定があるWorkSpaceでは、ボリューム暗号化の扱いに注意します。AWS公式ドキュメントでは、暗号化されたWorkSpaceからのイメージ作成はサポートされないとされています</p>
+        <p>カスタムイメージを作成する予定があるWorkSpaceでは、ボリューム暗号化の扱いに注意します。AWS公式ドキュメントでは、暗号化されたWorkSpaceからのイメージ作成はサポートされません</p>
       </div>
-
-      <h2 id="web-access">Web Access</h2>
-      <p>Web Accessを使うと、WorkSpacesクライアントアプリをインストールせずに、対応ブラウザからWorkSpacesへ接続できます。利用するには、管理者側でWeb Accessを有効化します</p>
-
-      <ol>
-        <li>Amazon WorkSpacesのディレクトリ設定を開きます</li>
-        <li>ディレクトリの詳細更新から、アクセス制御オプションを確認します</li>
-        <li>Web Accessを有効化します</li>
-        <li>必要に応じて、対象WorkSpaceをリビルドまたは再作成します</li>
-        <li><a href="https://clients.amazonworkspaces.com/">WorkSpacesクライアントページ</a> からWeb Accessに接続します</li>
-      </ol>
-
-      <div class="callout">
-        <strong>ℹ️ 情報</strong>
-        <p>Web Access は DCV ベースの Windows / Linux WorkSpaces で利用します。PCoIP Web Access は 2025 年 11 月 7 日以降、新規顧客への提供を終了しており、既存利用者向けには重要な機能・セキュリティ更新のみが提供されます。Web Access を新たに設計する場合は DCV を前提に確認します</p>
-      </div>
-      <p>公式情報: <a href="https://docs.aws.amazon.com/workspaces/latest/userguide/amazon-workspaces-web-access.html">WorkSpaces Web Access</a></p>
-
-      <h2 id="image-bundle">カスタムイメージ・バンドル</h2>
-      <p>WorkSpaceにOS設定やアプリケーションを入れた後、同じ構成を再利用するためにカスタムイメージとカスタムバンドルを作成します</p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>区分</th>
-            <th>確認内容</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>イメージ作成前</td>
-            <td>WorkSpaceのステータスがAvailableで、変更状態がNoneであることを確認します</td>
-          </tr>
-          <tr>
-            <td>Windows</td>
-            <td>Image Checkerを実行し、失敗または警告を解消してからイメージ化します</td>
-          </tr>
-          <tr>
-            <td>Linux</td>
-            <td>ユーザーボリューム配下にアプリケーションを含めないようにし、必要コンポーネントを確認します</td>
-          </tr>
-          <tr>
-            <td>暗号化</td>
-            <td>暗号化されたWorkSpaceからはカスタムイメージを作成できないため、要件定義時点で暗号化の必要性とイメージ運用を整理します</td>
-          </tr>
-          <tr>
-            <td>バンドル</td>
-            <td>カスタムイメージとコンピュート・ストレージ構成を組み合わせ、以後のWorkSpaces作成時に利用します</td>
-          </tr>
-        </tbody>
-      </table>
-      <p>公式情報: <a href="https://docs.aws.amazon.com/workspaces/latest/adminguide/create-custom-bundle.html">Create a custom WorkSpaces image and bundle for WorkSpaces Personal</a></p>
 
     </main>
 
@@ -370,8 +318,6 @@
       <a href="#directory-accounts">アカウントの役割</a>
       <a href="#register-directory">ディレクトリ登録</a>
       <a href="#provision">WorkSpaces Personal作成</a>
-      <a href="#web-access">Web Access</a>
-      <a href="#image-bundle">イメージ・バンドル</a>
     </aside>
   </div>
   <script src="../assets/app.js"></script>
