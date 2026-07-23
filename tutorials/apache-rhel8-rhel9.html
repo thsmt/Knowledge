@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apache HTTP Server on RHEL 8 / 9 | Documentation</title>
+  <meta name="description" content="Red Hat Enterprise Linux 8 / 9でApache HTTP Serverを安全に構築・運用するための実務ガイドです。TLS、SELinux、ログ、認証、リバースプロキシ、障害切り分けを扱います。">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../"><img src="../assets/icon.jpg" alt="Documentation icon"><span>Documentation</span></a>
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" type="button" title="テーマを切り替える" aria-label="テーマを切り替える">☀</button>
+      <nav class="nav" aria-label="Global navigation">
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <a href="https://github.com/thsmt"><span class="nav-icon" aria-hidden="true">◈</span>Repositories</a>
+        <a href="https://github.com/thsmt/Documentation"><span class="nav-icon" aria-hidden="true">↗</span>GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="site-sidebar" class="sidebar" aria-label="Page list">
+      <div class="sidebar-heading">
+        <h2>ページ一覧</h2>
+        <button class="icon-button sidebar-toggle sidebar-toggle-inline" type="button" aria-controls="site-sidebar" aria-expanded="true" title="ページ一覧を閉じる" aria-label="ページ一覧を閉じる">−</button>
+      </div>
+      <a href="cloudformation.html">CloudFormation</a>
+      <a href="aws-cli.html">AWS CLI 代表例</a>
+      <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
+      <a href="amazon-workspaces.html">Amazon WorkSpaces</a>
+      <a href="amazon-ses.html">Amazon SES</a>
+      <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
+      <a href="mariadb-rhel8-rhel9.html">MariaDB on RHEL 8 / 9</a>
+      <a class="active" href="apache-rhel8-rhel9.html">Apache HTTP Server on RHEL 8 / 9</a>
+      <a href="rhel10-ops.html">[構築] Red Hat Enterprise Linux 10</a>
+      <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
+      <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
+      <a href="windows-server-2025.html">[構築] Windows Server 2025</a>
+      <a href="zabbix-ops.html">Zabbix 6.0</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
+      <a href="glossary.html">用語集</a>
+      <a href="terraform.html">Terraform ・運用中</a>
+      <a href="awx-ansible.html">AWX / Ansible ・運用中</a>
+      <a href="container.html">コンテナ ・運用中</a>
+      <a href="github-actions.html">GitHub Actions ・運用中</a>
+    </aside>
+
+    <main class="content">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <span>チュートリアル</span>
+      </nav>
+
+      <h1>Apache HTTP Server on RHEL 8 / 9</h1>
+      <p class="lead">Red Hat Enterprise Linux 8 / 9 で Apache HTTP Server を構築・運用するための実務ガイドです。静的コンテンツ配信、TLS 終端、アクセス制御、リバースプロキシを対象に、変更と障害対応で必要になる確認手順を整理します。</p>
+
+      <div class="callout callout-warning">
+        <strong>⚠️ 運用の原則</strong>
+        <p>本番設定は <code>/etc/httpd/conf.d/</code> に個別ファイルとして配置し、変更ごとに <code>apachectl configtest</code> を実行してから再読み込みます。<code>.htaccess</code> は性能低下や意図しない設定変更につながるため、共有ホスティングなど明確な理由がある場合を除き使用しません。</p>
+      </div>
+
+      <h2 id="scope">対象と基本構成</h2>
+      <table>
+        <thead><tr><th>項目</th><th>内容</th></tr></thead>
+        <tbody>
+          <tr><td>対象 OS</td><td>Red Hat Enterprise Linux 8 / 9</td></tr>
+          <tr><td>サービス</td><td><code>httpd.service</code></td></tr>
+          <tr><td>主設定</td><td><code>/etc/httpd/conf/httpd.conf</code></td></tr>
+          <tr><td>追加設定</td><td><code>/etc/httpd/conf.d/*.conf</code></td></tr>
+          <tr><td>モジュール設定</td><td><code>/etc/httpd/conf.modules.d/*.conf</code></td></tr>
+          <tr><td>標準の公開ディレクトリ</td><td><code>/var/www/html</code></td></tr>
+          <tr><td>主なログ</td><td><code>/var/log/httpd/access_log</code>、<code>/var/log/httpd/error_log</code></td></tr>
+        </tbody>
+      </table>
+      <p>Apache は Web コンテンツの配信だけでなく、TLS の終端、認証、アプリケーションへのリバースプロキシとして使われます。担当時には「どの VirtualHost がどのドメイン・証明書・公開パス・バックエンドを持つか」を説明できる状態にします。</p>
+
+      <h2 id="install">導入と初期確認</h2>
+      <p class="procedure-step"><strong>1. パッケージを導入し、サービスを起動します</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf install httpd mod_ssl
+sudo systemctl enable --now httpd.service
+sudo systemctl status httpd.service --no-pager
+httpd -v</code></pre></div>
+
+      <p class="procedure-step"><strong>2. 必要な通信だけを許可します</strong></p>
+      <div class="code"><div class="code-header"><span>firewalld</span><button class="copy" type="button">Copy</button></div><pre><code>sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-services</code></pre></div>
+
+      <p class="procedure-step"><strong>3. ローカルで応答を確認します</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>curl -I http://127.0.0.1/
+sudo ss -lntp | grep -E ':(80|443)'
+sudo httpd -S</code></pre></div>
+      <p><code>httpd -S</code> は読み込まれた VirtualHost と <code>ServerName</code> の対応を表示します。意図しない既定 VirtualHost が応答しているときの最初の確認手段です。</p>
+
+      <h2 id="change">設定変更の基本手順</h2>
+      <p>主設定ファイルを直接編集するより、用途ごとに <code>/etc/httpd/conf.d/</code> 配下へ設定を分けます。変更対象、適用日時、ロールバック手順を残します。</p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo install -d -m 0700 /root/config-backup
+sudo cp -a /etc/httpd /root/config-backup/httpd-$(date +%Y%m%d)
+sudo vi /etc/httpd/conf.d/example.conf
+sudo apachectl configtest
+sudo systemctl reload httpd.service
+sudo systemctl status httpd.service --no-pager</code></pre></div>
+      <div class="callout">
+        <strong>ℹ️ reload と restart</strong>
+        <p>通常の設定変更は既存接続への影響を小さくできる <code>reload</code> を使います。モジュールやプロセスの状態を含めて再起動が必要な場合だけ、影響を確認して <code>restart</code> を選びます。構文エラーがある設定を適用しないため、<code>configtest</code> は省略しません。</p>
+      </div>
+
+      <h3>VirtualHost の最小構成</h3>
+      <div class="code"><div class="code-header"><span>/etc/httpd/conf.d/www.example.com.conf</span><button class="copy" type="button">Copy</button></div><pre><code>&lt;VirtualHost *:80&gt;
+  ServerName www.example.com
+  DocumentRoot /var/www/example
+
+  ErrorLog logs/www-example-error.log
+  CustomLog logs/www-example-access.log combined
+
+  &lt;Directory "/var/www/example"&gt;
+    AllowOverride None
+    Options -Indexes +FollowSymLinks
+    Require all granted
+  &lt;/Directory&gt;
+&lt;/VirtualHost&gt;</code></pre></div>
+      <p><code>ServerName</code>、<code>DocumentRoot</code>、アクセスログ、エラーログを VirtualHost ごとに明示します。<code>Options -Indexes</code> により、インデックスファイルがないディレクトリの一覧表示を防ぎます。</p>
+
+      <h2 id="tls">TLS と証明書</h2>
+      <p>TLS 終端を Apache で行う場合、証明書の有効期限、秘密鍵の権限、更新後の再読み込みまでを運用項目にします。暗号スイートやプロトコルは個別に古い値を固定せず、組織の基準と RHEL の暗号ポリシーに従います。</p>
+      <div class="code"><div class="code-header"><span>/etc/httpd/conf.d/www.example.com-ssl.conf</span><button class="copy" type="button">Copy</button></div><pre><code>&lt;VirtualHost *:443&gt;
+  ServerName www.example.com
+  DocumentRoot /var/www/example
+
+  SSLEngine on
+  SSLCertificateFile /etc/pki/tls/certs/www.example.com.crt
+  SSLCertificateKeyFile /etc/pki/tls/private/www.example.com.key
+
+  ErrorLog logs/www-example-ssl-error.log
+  CustomLog logs/www-example-ssl-access.log combined
+&lt;/VirtualHost&gt;</code></pre></div>
+      <div class="code"><div class="code-header"><span>verification</span><button class="copy" type="button">Copy</button></div><pre><code>sudo apachectl configtest
+sudo systemctl reload httpd.service
+openssl s_client -connect www.example.com:443 -servername www.example.com &lt; /dev/null
+openssl x509 -in /etc/pki/tls/certs/www.example.com.crt -noout -subject -issuer -enddate</code></pre></div>
+      <p>HTTP から HTTPS へのリダイレクトは、アプリケーション側の要件を確認したうえで設定します。証明書更新は期限前に検証環境で試し、本番では設定確認、再読み込み、外部からの接続確認までを一連の作業にします。</p>
+
+      <h2 id="selinux">SELinux とファイル権限</h2>
+      <p>SELinux を無効化して解決する運用は行いません。403、バックエンド接続失敗、独自ポートでの起動不可は、Linux 権限だけでなく SELinux のラベルとブール値を確認します。</p>
+
+      <h3>標準外の公開パス</h3>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf install policycoreutils-python-utils
+sudo semanage fcontext -a -t httpd_sys_content_t "/srv/www/example(/.*)?"
+sudo restorecon -Rv /srv/www/example</code></pre></div>
+
+      <h3>Apache から書き込むパス</h3>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo semanage fcontext -a -t httpd_sys_rw_content_t "/srv/www/example/uploads(/.*)?"
+sudo restorecon -Rv /srv/www/example/uploads</code></pre></div>
+
+      <h3>独自ポートとプロキシ接続</h3>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo semanage port -a -t http_port_t -p tcp 8080
+sudo setsebool -P httpd_can_network_connect on
+getsebool httpd_can_network_connect</code></pre></div>
+      <p>ブール値は Apache がリバースプロキシとして外部接続を開始する場合にだけ必要です。実施前に対象バックエンドと通信先を確認します。拒否ログは <code>ausearch -m AVC -ts recent</code> で確認します。</p>
+
+      <h2 id="access">アクセス制御と認証</h2>
+      <p>管理画面や限定公開コンテンツには、ネットワーク制御と認証を組み合わせます。Basic 認証を使う場合は必ず HTTPS を前提とし、パスワードファイルを公開ディレクトリに置きません。</p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf install httpd-tools
+sudo htpasswd -c /etc/httpd/conf/.htpasswd t_hashimoto
+sudo chown root:apache /etc/httpd/conf/.htpasswd
+sudo chmod 0640 /etc/httpd/conf/.htpasswd</code></pre></div>
+      <div class="code"><div class="code-header"><span>authentication example</span><button class="copy" type="button">Copy</button></div><pre><code>&lt;Location "/admin"&gt;
+  AuthType Basic
+  AuthName "Restricted Area"
+  AuthUserFile /etc/httpd/conf/.htpasswd
+  Require user t_hashimoto
+&lt;/Location&gt;
+
+&lt;Location "/internal"&gt;
+  Require ip 192.0.2.0/24
+&lt;/Location&gt;</code></pre></div>
+      <p>組織の ID 管理がある環境では、LDAP、Kerberos、OIDC/SAML 連携を独自実装せず、認証基盤の方式と責任分界を確認します。退職・異動時の権限削除、監査ログ、障害時の迂回手順も設計に含めます。</p>
+
+      <h2 id="proxy">リバースプロキシ</h2>
+      <p>Apache をアプリケーションの前段に置く場合は、バックエンドのアドレス、ヘルスチェック、タイムアウト、障害時の応答を決めます。転送プロキシは不要な限り有効化しません。</p>
+      <div class="code"><div class="code-header"><span>/etc/httpd/conf.d/app-proxy.conf</span><button class="copy" type="button">Copy</button></div><pre><code>ProxyRequests Off
+ProxyPreserveHost On
+
+ProxyPass        /app/ http://127.0.0.1:8080/
+ProxyPassReverse /app/ http://127.0.0.1:8080/</code></pre></div>
+      <div class="code"><div class="code-header"><span>verification</span><button class="copy" type="button">Copy</button></div><pre><code>sudo httpd -M | grep -E 'proxy_module|proxy_http_module'
+sudo apachectl configtest
+sudo systemctl reload httpd.service
+curl -I http://127.0.0.1/app/</code></pre></div>
+      <div class="callout callout-warning">
+        <strong>⚠️ ProxyRequests は Off のままにします</strong>
+        <p><code>ProxyRequests On</code> は転送プロキシを有効にします。アクセス制御なしで有効化するとオープンプロキシになるため、リバースプロキシ用途では <code>ProxyPass</code> と <code>ProxyPassReverse</code> を使い、<code>ProxyRequests Off</code> を維持します。</p>
+      </div>
+
+      <h2 id="logs">ログ、状態確認、性能調査</h2>
+      <table>
+        <thead><tr><th>確認対象</th><th>主な確認方法</th></tr></thead>
+        <tbody>
+          <tr><td>エラー</td><td><code>journalctl -u httpd -b</code>、<code>/var/log/httpd/error_log</code></td></tr>
+          <tr><td>アクセス傾向</td><td>VirtualHost ごとの access log、ステータスコード、応答時間</td></tr>
+          <tr><td>読み込み設定</td><td><code>httpd -S</code>、<code>httpd -M</code>、<code>httpd -V</code></td></tr>
+          <tr><td>接続・待ち行列</td><td><code>ss -s</code>、<code>mod_status</code>、OS の CPU・メモリ・ネットワーク</td></tr>
+          <tr><td>ディスク</td><td><code>df -hT /var/log/httpd</code>、<code>df -ih /var/log/httpd</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>mod_status の安全な公開</h3>
+      <div class="code"><div class="code-header"><span>status example</span><button class="copy" type="button">Copy</button></div><pre><code>&lt;Location "/server-status"&gt;
+  SetHandler server-status
+  Require ip 127.0.0.1 192.0.2.0/24
+&lt;/Location&gt;</code></pre></div>
+      <p><code>/server-status</code> は要求処理や接続状況を表示するため、インターネットへ公開しません。監視基盤または管理ネットワークに限定します。</p>
+
+      <h3>チューニング前の確認</h3>
+      <ul>
+        <li>負荷試験や実測値で、CPU、メモリ、同時接続数、応答時間、5xx を確認します。</li>
+        <li>MPM は同時に一つだけ有効です。利用中の MPM とプロセス・スレッド上限を把握してから変更します。</li>
+        <li><code>KeepAlive</code>、<code>Timeout</code>、ワーカー数に固定の推奨値はありません。アプリケーション、接続パターン、サーバー容量に合わせて検証します。</li>
+        <li>圧縮、キャッシュ、負荷分散は、対象コンテンツ、キャッシュ無効化、セッション維持、障害時の動作を決めてから導入します。</li>
+      </ul>
+
+      <h2 id="security">最低限のセキュリティ設定</h2>
+      <div class="code"><div class="code-header"><span>/etc/httpd/conf.d/security.conf</span><button class="copy" type="button">Copy</button></div><pre><code>ServerTokens Prod
+ServerSignature Off
+TraceEnable Off
+
+&lt;Directory "/var/www/html"&gt;
+  Options -Indexes +FollowSymLinks
+  AllowOverride None
+  Require all granted
+&lt;/Directory&gt;</code></pre></div>
+      <p>バージョン情報を抑制しても脆弱性対策にはなりません。OS と httpd の更新、不要モジュールの無効化、管理画面のアクセス制御、証明書更新、ログ監視を継続します。WAF やレート制限は Apache 単体で抱えず、ロードバランサー、CDN、WAF の責任範囲と合わせて設計します。</p>
+
+      <h2 id="troubleshooting">障害時の確認順</h2>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo apachectl configtest
+sudo systemctl status httpd.service --no-pager
+sudo journalctl -u httpd.service -b -p warning --no-pager
+sudo tail -n 100 /var/log/httpd/error_log
+sudo httpd -S
+sudo ss -lntp | grep -E ':(80|443|8080)'
+sudo ausearch -m AVC -ts recent
+curl -I -H 'Host: www.example.com' http://127.0.0.1/</code></pre></div>
+      <table>
+        <thead><tr><th>症状</th><th>優先して確認すること</th></tr></thead>
+        <tbody>
+          <tr><td>起動できない</td><td><code>apachectl configtest</code>、ポート競合、証明書・秘密鍵のパス、journal</td></tr>
+          <tr><td>403 Forbidden</td><td><code>Require</code>、<code>&lt;Directory&gt;</code>、Linux 権限、SELinux ラベル、親ディレクトリの実行権限</td></tr>
+          <tr><td>404 Not Found</td><td><code>httpd -S</code>、<code>ServerName</code>、<code>DocumentRoot</code>、リライト規則</td></tr>
+          <tr><td>502 / 503 / 504</td><td>バックエンドの起動・待受・名前解決・タイムアウト・SELinux の接続許可</td></tr>
+          <tr><td>TLS 接続失敗</td><td>証明書の SAN・有効期限・鍵の対応、443 の待受、クライアントからの SNI 指定</td></tr>
+          <tr><td>遅い・接続が詰まる</td><td>アクセスログ、mod_status、CPU・メモリ・ディスク I/O、バックエンド応答、同時接続数</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="next">要件がある場合に追加する機能</h2>
+      <table>
+        <thead><tr><th>機能</th><th>導入前に決めること</th></tr></thead>
+        <tbody>
+          <tr><td>WebDAV</td><td>公開範囲、認証、TLS、書き込み先の SELinux ラベル、監査ログ、バックアップ</td></tr>
+          <tr><td>LDAP / 統合認証</td><td>認証基盤の所有者、グループ設計、障害時の動作、証明書、退職・異動時の削除</td></tr>
+          <tr><td>ロードバランス</td><td>ヘルスチェック、セッション維持、バックエンド切り離し、デプロイとロールバック</td></tr>
+          <tr><td>圧縮・キャッシュ</td><td>対象 MIME type、キャッシュ無効化、動的コンテンツへの影響、計測結果</td></tr>
+          <tr><td>WAF / DDoS 対策</td><td>LB・CDN・WAF との分担、ログ連携、誤検知時の手順、緊急遮断権限</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="references">公式情報</h2>
+      <ul>
+        <li><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/deploying_web_servers_and_reverse_proxies/setting-apache-http-server_deploying-web-servers-and-reverse-proxies">RHEL 9: Setting up the Apache HTTP Server</a></li>
+        <li><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html-single/deploying_different_types_of_servers/index">RHEL 8: Deploying different types of servers</a></li>
+        <li><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/using_selinux/index">RHEL 9: Using SELinux</a></li>
+        <li><a href="https://httpd.apache.org/docs/2.4/en/mod/mod_proxy.html">Apache HTTP Server: mod_proxy</a></li>
+        <li><a href="https://httpd.apache.org/docs/current/mpm.html">Apache HTTP Server: Multi-Processing Modules</a></li>
+        <li><a href="https://httpd.apache.org/docs/2.4/en/mod/core.html">Apache HTTP Server: Core directives</a></li>
+      </ul>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <h2>目次</h2>
+      <a class="active" href="#scope">対象と基本構成</a>
+      <a href="#install">導入と初期確認</a>
+      <a href="#change">設定変更の基本手順</a>
+      <a href="#tls">TLS と証明書</a>
+      <a href="#selinux">SELinux とファイル権限</a>
+      <a href="#access">アクセス制御と認証</a>
+      <a href="#proxy">リバースプロキシ</a>
+      <a href="#logs">ログと性能調査</a>
+      <a href="#security">セキュリティ設定</a>
+      <a href="#troubleshooting">障害時の確認順</a>
+      <a href="#next">要件別の追加機能</a>
+      <a href="#references">公式情報</a>
+    </aside>
+  </div>
+  <script src="../assets/app.js"></script>
+</body>
+</html>
