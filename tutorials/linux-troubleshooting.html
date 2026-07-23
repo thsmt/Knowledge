@@ -62,7 +62,7 @@
         <strong>ℹ️ 情報</strong>
         <p>
           このページは確認コマンドを中心に整理しています
-          復旧コマンドは原因と影響範囲を確認したあとに実行する前提で、各セクションの末尾に分けて記載します
+          復旧コマンドは原因と影響範囲を確認したあとに実行する前提で、各セクションの末尾に分けて記載する
         </p>
       </div>
 
@@ -70,17 +70,17 @@
         <strong>⚠️ 注意</strong>
         <p>
           原因が見えていない段階で、サービス再起動、プロセス強制終了、OS再起動、ログ削除、SELinux無効化を先に行うと、
-          障害発生時の証跡が失われる場合があります
+          障害発生時の証跡が失われる場合がある
         </p>
         <p>
-          緊急復旧が必要な場合も、実行前後の時刻、コマンド、結果、判断理由を作業記録に残します
+          緊急復旧が必要な場合も、実行前後の時刻、コマンド、結果、判断理由を作業記録に残す
         </p>
       </div>
 
       <h2 id="initial-record">1. 初動で記録する情報</h2>
       <p>
         先に技術的なコマンドを実行するのではなく、発生状況を短く整理します
-        以降の調査では、この情報を基準に「対象が1台か複数台か」「OS内かAWS側か」「変更起因か」を切り分けます
+        以降の調査では、この情報を基準に「対象が1台か複数台か」「OS内かAWS側か」「変更起因か」を切り分ける
       </p>
 
       <table>
@@ -89,19 +89,19 @@
         </thead>
         <tbody>
           <tr><td>発生時刻</td><td>タイムゾーンを含めて記録します。例: 2026-07-13 10:15 JST</td></tr>
-          <tr><td>対象</td><td>ホスト名、IPアドレス、EC2 Instance ID、サービス名を記録します</td></tr>
-          <tr><td>OS</td><td>Red Hat Enterprise Linux 9 / 10、Amazon Linux 2023などを確認します</td></tr>
-          <tr><td>事象</td><td>エラーメッセージ、HTTPステータス、画面表示、ユーザー影響を記録します</td></tr>
-          <tr><td>影響範囲</td><td>1ユーザーのみ、1台のみ、複数台、システム全体などを分けます</td></tr>
-          <tr><td>直前変更</td><td>パッチ、設定変更、デプロイ、証明書更新、再起動、監視設定変更を確認します</td></tr>
-          <tr><td>再現性</td><td>常時発生、断続的、特定時間帯のみ、特定経路のみなどを記録します</td></tr>
+          <tr><td>対象</td><td>ホスト名、IPアドレス、EC2 Instance ID、サービス名を記録する</td></tr>
+          <tr><td>OS</td><td>Red Hat Enterprise Linux 9 / 10、Amazon Linux 2023などを確認する</td></tr>
+          <tr><td>事象</td><td>エラーメッセージ、HTTPステータス、画面表示、ユーザー影響を記録する</td></tr>
+          <tr><td>影響範囲</td><td>1ユーザーのみ、1台のみ、複数台、システム全体などを分ける</td></tr>
+          <tr><td>直前変更</td><td>パッチ、設定変更、デプロイ、証明書更新、再起動、監視設定変更を確認する</td></tr>
+          <tr><td>再現性</td><td>常時発生、断続的、特定時間帯のみ、特定経路のみなどを記録する</td></tr>
         </tbody>
       </table>
 
       <h2 id="quick-check">2. 60秒で行う基本状態確認</h2>
       <p>
         まずOSの稼働時間、時刻、負荷、メモリ、ディスク、失敗中のsystemdユニットを確認します
-        ここでは復旧操作を行わず、全体像をつかみます
+        ここでは復旧操作を行わず、全体像をつかむ
       </p>
 
       <div class="code">
@@ -121,16 +121,16 @@ sudo journalctl -b -p err --since "-2 hours" --no-pager -o short-iso-precise</co
           <tr><th>確認結果</th><th>読み方</th><th>次に見る項目</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>uptime</code> のLoad Averageが高い</td><td>CPUだけでなく、I/O待ちやプロセス滞留でも上がります</td><td><a href="#cpu">CPU・Load Average</a>、<a href="#disk">ディスク・inode・I/O</a></td></tr>
-          <tr><td><code>df -hT</code> が100%に近い</td><td>ログ肥大化、バックアップ残骸、一時ファイルの滞留を疑います</td><td><a href="#disk">ディスク・inode・I/O</a></td></tr>
-          <tr><td><code>systemctl --failed</code> に対象サービスが出る</td><td>systemd管理のサービス起動失敗です</td><td><a href="#systemd">プロセス・systemd</a></td></tr>
-          <tr><td><code>journalctl -p err</code> に同時刻のエラーがある</td><td>OS、カーネル、systemd、サービスの異常が時系列で確認できます</td><td><a href="#logs">ログ確認</a></td></tr>
+          <tr><td><code>uptime</code> のLoad Averageが高い</td><td>CPUだけでなく、I/O待ちやプロセス滞留でも上がる</td><td><a href="#cpu">CPU・Load Average</a>、<a href="#disk">ディスク・inode・I/O</a></td></tr>
+          <tr><td><code>df -hT</code> が100%に近い</td><td>ログ肥大化、バックアップ残骸、一時ファイルの滞留を疑う</td><td><a href="#disk">ディスク・inode・I/O</a></td></tr>
+          <tr><td><code>systemctl --failed</code> に対象サービスが出る</td><td>systemd管理のサービス起動失敗</td><td><a href="#systemd">プロセス・systemd</a></td></tr>
+          <tr><td><code>journalctl -p err</code> に同時刻のエラーがある</td><td>OS、カーネル、systemd、サービスの異常が時系列で確認できる</td><td><a href="#logs">ログ確認</a></td></tr>
         </tbody>
       </table>
 
       <details class="example-details">
         <summary>正常時・異常時の出力例</summary>
-        <p>以下はサンプルです。実環境のホスト名、IPアドレス、Instance IDは記載していません</p>
+        <p>以下はサンプルです。実環境のホスト名、IPアドレス、Instance IDは記載していない</p>
         <div class="code">
           <div class="code-header"><span>sample</span><button class="copy" type="button">Copy</button></div>
           <pre><code># 正常例
@@ -151,7 +151,7 @@ $ systemctl --failed
       <h2 id="logs">3. rsyslog / systemd-journal のログ確認</h2>
       <p>
         RHEL系とAmazon Linux 2023では、systemd-journalとrsyslogの使い方が環境により異なります
-        まずjournalを時刻と重大度で確認し、必要に応じて <code>/var/log/messages</code> や <code>/var/log/secure</code> を確認します
+        まずjournalを時刻と重大度で確認し、必要に応じて <code>/var/log/messages</code> や <code>/var/log/secure</code> を確認する
       </p>
 
       <div class="code">
@@ -172,9 +172,9 @@ fi</code></pre>
           <tr><th>確認方法</th><th>役割</th><th>補足</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>journalctl -p err</code></td><td>systemd-journalから重大度で抽出します</td><td><code>err</code> を指定すると、emerg、alert、crit、errも対象になります</td></tr>
-          <tr><td><code>grep</code></td><td>テキストログを文字列で検索します</td><td>severityではなく文字列検索のため、検索語を変えながら確認します</td></tr>
-          <tr><td><code>/var/log/secure</code></td><td>SSH、sudo、PAMなど認証系ログを確認します</td><td>存在しない環境ではjournal側を確認します</td></tr>
+          <tr><td><code>journalctl -p err</code></td><td>systemd-journalから重大度で抽出する</td><td><code>err</code> を指定すると、emerg、alert、crit、errも対象になる</td></tr>
+          <tr><td><code>grep</code></td><td>テキストログを文字列で検索する</td><td>severityではなく文字列検索のため、検索語を変えながら確認する</td></tr>
+          <tr><td><code>/var/log/secure</code></td><td>SSH、sudo、PAMなど認証系ログを確認する</td><td>存在しない環境ではjournal側を確認する</td></tr>
         </tbody>
       </table>
 
@@ -191,14 +191,14 @@ Jul 13 10:24:12 host sshd[2345]: Failed password for invalid user test from 203.
         </div>
         <p>
           サービス名、時刻、エラー文字列、直前変更を合わせて確認します
-          <code>No space left on device</code> が出ている場合はサービス再起動より先にディスク容量を確認します
+          <code>No space left on device</code> が出ている場合はサービス再起動より先にディスク容量を確認する
         </p>
       </details>
 
       <h2 id="cpu">4. CPU・Load Average</h2>
       <p>
         Load Averageが高い場合でも、CPU使用率だけが原因とは限りません
-        I/O待ち、プロセス滞留、短時間のスパイク、バックアップ処理、ログ圧縮などを分けて確認します
+        I/O待ち、プロセス滞留、短時間のスパイク、バックアップ処理、ログ圧縮などを分けて確認する
       </p>
 
       <div class="code">
@@ -214,15 +214,15 @@ ps -eo pid,ppid,user,stat,pcpu,pmem,etime,cmd --sort=-pmem | head -n 20</code></
           <tr><th>見る値</th><th>読み方</th><th>次の確認</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>load average</code></td><td>CPU数に対して高いかを見ます。CPU数を超える状態が継続する場合は滞留を疑います</td><td><code>top</code>、I/O待ち、プロセス状態</td></tr>
-          <tr><td><code>%Cpu(s) wa</code></td><td>I/O待ちです。CPUが空いていてもディスク待ちで遅くなる場合があります</td><td><a href="#disk">ディスク・I/O</a></td></tr>
-          <tr><td><code>STAT</code> が <code>D</code></td><td>割り込み不可スリープです。I/O待ちやNFS待ちなどを疑います</td><td>ディスク、ネットワーク、外部ストレージ</td></tr>
+          <tr><td><code>load average</code></td><td>CPU数に対して高いかを見ます。CPU数を超える状態が継続する場合は滞留を疑う</td><td><code>top</code>、I/O待ち、プロセス状態</td></tr>
+          <tr><td><code>%Cpu(s) wa</code></td><td>I/O待ちです。CPUが空いていてもディスク待ちで遅くなる場合がある</td><td><a href="#disk">ディスク・I/O</a></td></tr>
+          <tr><td><code>STAT</code> が <code>D</code></td><td>割り込み不可スリープです。I/O待ちやNFS待ちなどを疑う</td><td>ディスク、ネットワーク、外部ストレージ</td></tr>
         </tbody>
       </table>
 
       <h2 id="memory">5. メモリ・Swap・OOM</h2>
       <p>
-        メモリ不足では、プロセス停止、応答遅延、OOM Killerによる強制終了、swap多用による性能劣化が起こります
+        メモリ不足では、プロセス停止、応答遅延、OOM Killerによる強制終了、swap多用による性能劣化が起こる
       </p>
 
       <div class="code">
@@ -242,14 +242,14 @@ kernel: oom_reaper: reaped process 12345 (java)</code></pre>
         </div>
         <p>
           OOMが出ている場合は、該当プロセス、発生時刻、直前のアクセス増加、メモリ上限設定、バッチ処理有無を確認します
-          いきなりサービスを再起動すると、発生時のメモリ状態を追えなくなります
+          いきなりサービスを再起動すると、発生時のメモリ状態を追えなくなる
         </p>
       </details>
 
       <h2 id="disk">6. ディスク・inode・I/O</h2>
       <p>
         ディスク障害は容量不足だけではありません
-        inode枯渇、読み取り専用マウント、I/Oエラー、ログ肥大、削除済みファイルをプロセスが掴んでいるケースを確認します
+        inode枯渇、読み取り専用マウント、I/Oエラー、ログ肥大、削除済みファイルをプロセスが掴んでいるケースを確認する
       </p>
 
       <div class="code">
@@ -267,10 +267,10 @@ sudo journalctl -k --no-pager | grep -Ei 'I/O error|read-only|xfs|ext4|nvme|blk_
           <tr><th>症状</th><th>読み方</th><th>次に確認すること</th></tr>
         </thead>
         <tbody>
-          <tr><td>容量100%</td><td>ログ、バックアップ、一時ファイル、アプリ出力の肥大を疑います</td><td><code>du</code>、logrotate、アプリログ</td></tr>
-          <tr><td>inode100%</td><td>小さいファイルが大量に作成されています</td><td>メールキュー、セッションファイル、キャッシュ</td></tr>
-          <tr><td>read-only</td><td>ファイルシステム保護やストレージ異常の可能性があります</td><td>カーネルログ、EBS status checks</td></tr>
-          <tr><td><code>df</code> と <code>du</code> が合わない</td><td>削除済みファイルをプロセスが掴んでいる場合があります</td><td><code>sudo lsof +L1</code></td></tr>
+          <tr><td>容量100%</td><td>ログ、バックアップ、一時ファイル、アプリ出力の肥大を疑う</td><td><code>du</code>、logrotate、アプリログ</td></tr>
+          <tr><td>inode100%</td><td>小さいファイルが大量に作成されている</td><td>メールキュー、セッションファイル、キャッシュ</td></tr>
+          <tr><td>read-only</td><td>ファイルシステム保護やストレージ異常の可能性がある</td><td>カーネルログ、EBS status checks</td></tr>
+          <tr><td><code>df</code> と <code>du</code> が合わない</td><td>削除済みファイルをプロセスが掴んでいる場合がある</td><td><code>sudo lsof +L1</code></td></tr>
         </tbody>
       </table>
 
@@ -281,7 +281,7 @@ sudo journalctl -k --no-pager | grep -Ei 'I/O error|read-only|xfs|ext4|nvme|blk_
 
       <h2 id="systemd">7. プロセス・systemd</h2>
       <p>
-        サービス単位の障害では、systemdの状態、直近ログ、設定ファイル構文、実行ユーザー、依存サービスを確認します
+        サービス単位の障害では、systemdの状態、直近ログ、設定ファイル構文、実行ユーザー、依存サービスを確認する
       </p>
 
       <div class="code">
@@ -297,7 +297,7 @@ systemctl show &lt;SERVICE_NAME&gt; -p User -p Group -p ExecStart -p Restart -p 
         <summary>手動実行では動くがsystemdでは失敗する場合</summary>
         <p>
           systemdでは環境変数、作業ディレクトリ、実行ユーザー、ulimit、PATHが対話シェルと異なることがあります
-          <code>systemctl cat</code> と <code>systemctl show</code> でユニット定義を確認します
+          <code>systemctl cat</code> と <code>systemctl show</code> でユニット定義を確認する
         </p>
         <div class="code">
           <div class="code-header"><span>bash</span><button class="copy" type="button">Copy</button></div>
@@ -308,7 +308,7 @@ sudo -u &lt;SERVICE_USER&gt; /path/to/command --check</code></pre>
 
       <h2 id="network">8. ポート・TCP・TLS・HTTP</h2>
       <p>
-        通信不可では、OS内部、Security Group、Network ACL、ルートテーブル、DNS、アプリケーション応答のどこで止まっているかを分けます
+        通信不可では、OS内部、Security Group、Network ACL、ルートテーブル、DNS、アプリケーション応答のどこで止まっているかを分ける
       </p>
 
       <div class="code">
@@ -325,16 +325,16 @@ nc -vz -w 5 &lt;HOST&gt; &lt;PORT&gt;</code></pre>
           <tr><th>確認結果</th><th>読み方</th><th>次の確認</th></tr>
         </thead>
         <tbody>
-          <tr><td>localhostでは応答する</td><td>アプリは起動しています。外部経路、SG、NACL、LB、DNSを確認します</td><td>AWS側設定、LBヘルスチェック</td></tr>
-          <tr><td><code>ss</code> にLISTENがない</td><td>対象サービスがポート待受していません</td><td>systemd、アプリ設定、起動ログ</td></tr>
-          <tr><td><code>nc</code> がtimeout</td><td>経路、SG、NACL、FW、宛先待受のいずれかで止まっています</td><td>ルート、SG、NACL、宛先サーバー</td></tr>
-          <tr><td><code>curl</code> がTLSで失敗</td><td>証明書、SNI、プロトコル、時刻同期を疑います</td><td><a href="#tls">証明書期限・TLS</a>、<a href="#time">時刻同期</a></td></tr>
+          <tr><td>localhostでは応答する</td><td>アプリは起動しています。外部経路、SG、NACL、LB、DNSを確認する</td><td>AWS側設定、LBヘルスチェック</td></tr>
+          <tr><td><code>ss</code> にLISTENがない</td><td>対象サービスがポート待受していない</td><td>systemd、アプリ設定、起動ログ</td></tr>
+          <tr><td><code>nc</code> がtimeout</td><td>経路、SG、NACL、FW、宛先待受のいずれかで止まっている</td><td>ルート、SG、NACL、宛先サーバー</td></tr>
+          <tr><td><code>curl</code> がTLSで失敗</td><td>証明書、SNI、プロトコル、時刻同期を疑う</td><td><a href="#tls">証明書期限・TLS</a>、<a href="#time">時刻同期</a></td></tr>
         </tbody>
       </table>
 
       <h2 id="dns-route">9. 名前解決・ルーティング</h2>
       <p>
-        IPアドレスでは接続できるがFQDNでは失敗する場合、名前解決、検索ドメイン、キャッシュ、レコード変更の反映を確認します
+        IPアドレスでは接続できるがFQDNでは失敗する場合、名前解決、検索ドメイン、キャッシュ、レコード変更の反映を確認する
       </p>
 
       <div class="code">
@@ -351,14 +351,14 @@ ip route get &lt;DESTINATION_IP&gt;</code></pre>
         <p>
           <code>getent hosts</code> はOSが実際に使う名前解決経路を確認します
           <code>dig</code> はDNS問い合わせ結果を確認します
-          両者が異なる場合は、<code>/etc/nsswitch.conf</code>、<code>/etc/hosts</code>、DNSキャッシュを確認します
+          両者が異なる場合は、<code>/etc/nsswitch.conf</code>、<code>/etc/hosts</code>、DNSキャッシュを確認する
         </p>
       </details>
 
       <h2 id="security">10. Firewall・SELinux・ファイル権限</h2>
       <p>
         Permission deniedや接続拒否は、Linux権限、SELinux、firewalld、Security Groupを分けて確認します
-        SELinuxを無効化する前に、拒否ログを確認します
+        SELinuxを無効化する前に、拒否ログを確認する
       </p>
 
       <div class="code">
@@ -375,14 +375,14 @@ ls -lZ &lt;PATH&gt;</code></pre>
         <strong>⚠️ 注意</strong>
         <p>
           <code>setenforce 0</code> は原因切り分けとして使われることがありますが、恒久対応ではありません
-          実行する場合は、対象時刻、影響範囲、戻し手順、SELinux拒否ログを記録します
+          実行する場合は、対象時刻、影響範囲、戻し手順、SELinux拒否ログを記録する
         </p>
       </div>
 
       <h2 id="time">11. 時刻同期</h2>
       <p>
         Kerberos、TLS、署名付きAPI、ログ相関では時刻差が原因になります
-        OS時刻とNTP同期状態を確認します
+        OS時刻とNTP同期状態を確認する
       </p>
 
       <div class="code">
@@ -393,12 +393,12 @@ chronyc sources -v</code></pre>
       </div>
 
       <p>
-        大きな時刻差を補正する <code>chronyc makestep</code> は、証跡とアプリ影響を確認してから実行します
+        大きな時刻差を補正する <code>chronyc makestep</code> は、証跡とアプリ影響を確認してから実行する
       </p>
 
       <h2 id="tls">12. 証明書期限・TLS</h2>
       <p>
-        証明書更新後に古い証明書が返る場合、LB、Webサーバー、証明書チェーン、SNI、キャッシュを確認します
+        証明書更新後に古い証明書が返る場合、LB、Webサーバー、証明書チェーン、SNI、キャッシュを確認する
       </p>
 
       <div class="code">
@@ -412,14 +412,14 @@ curl -vI --connect-timeout 5 --max-time 10 https://&lt;FQDN&gt;/</code></pre>
           <tr><th>症状</th><th>確認観点</th></tr>
         </thead>
         <tbody>
-          <tr><td>更新したのに古い証明書が出る</td><td>ALB/NLB、Webサーバー、CloudFront、SNI、接続先IPを確認します</td></tr>
-          <tr><td>一部端末だけ失敗する</td><td>中間証明書、クライアントの信頼ストア、TLSバージョンを確認します</td></tr>
+          <tr><td>更新したのに古い証明書が出る</td><td>ALB/NLB、Webサーバー、CloudFront、SNI、接続先IPを確認する</td></tr>
+          <tr><td>一部端末だけ失敗する</td><td>中間証明書、クライアントの信頼ストア、TLSバージョンを確認する</td></tr>
         </tbody>
       </table>
 
       <h2 id="login">13. OSユーザーでログインできない</h2>
       <p>
-        SSHログイン不可は、ネットワーク、sshd、OSユーザー、認証方式、鍵、PAM、SSSD、AD/LDAP、ホームディレクトリを分けて確認します
+        SSHログイン不可は、ネットワーク、sshd、OSユーザー、認証方式、鍵、PAM、SSSD、AD/LDAP、ホームディレクトリを分けて確認する
       </p>
 
       <h3>13.1 影響範囲を分ける</h3>
@@ -485,13 +485,13 @@ pam_faillock(sshd:auth): Consecutive login failures for user user account tempor
         <strong>⚠️ 注意</strong>
         <p>
           <code>faillock --reset</code>、<code>chmod</code>、<code>restorecon</code> は復旧操作です
-          実行前に対象ユーザー、原因、監査ログ、戻し要否を確認します
+          実行前に対象ユーザー、原因、監査ログ、戻し要否を確認する
         </p>
       </div>
 
       <h2 id="ec2">14. EC2環境固有の確認</h2>
       <p>
-        EC2ではOS内部だけでなく、Instance Status Checks、System Status Checks、EBS状態、Security Group、IAM Role、SSM Agentも確認します
+        EC2ではOS内部だけでなく、Instance Status Checks、System Status Checks、EBS状態、Security Group、IAM Role、SSM Agentも確認する
       </p>
 
       <h3>14.1 インスタンスメタデータ</h3>
@@ -525,9 +525,9 @@ aws ec2 describe-volume-status `
           <tr><th>コマンド</th><th>確認できること</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>describe-volumes</code></td><td>EBSボリュームの設定、状態、サイズ、アタッチ先、終了時削除属性を確認します</td></tr>
-          <tr><td><code>describe-volume-status</code></td><td>EBSのステータスチェック、イベント、障害有無を確認します</td></tr>
-          <tr><td><code>describe-instance-status</code></td><td>EC2インスタンスのSystem Status / Instance Statusを確認します</td></tr>
+          <tr><td><code>describe-volumes</code></td><td>EBSボリュームの設定、状態、サイズ、アタッチ先、終了時削除属性を確認する</td></tr>
+          <tr><td><code>describe-volume-status</code></td><td>EBSのステータスチェック、イベント、障害有無を確認する</td></tr>
+          <tr><td><code>describe-instance-status</code></td><td>EC2インスタンスのSystem Status / Instance Statusを確認する</td></tr>
         </tbody>
       </table>
 
@@ -539,7 +539,7 @@ sudo journalctl -u amazon-ssm-agent --since "-2 hours" --no-pager</code></pre>
       </div>
 
       <p>
-        SSM AgentがOfflineの場合は、IAM Role、VPC Endpoint、Outbound通信、DNS、時刻同期、Agentログを確認します
+        SSM AgentがOfflineの場合は、IAM Role、VPC Endpoint、Outbound通信、DNS、時刻同期、Agentログを確認する
       </p>
 
       <h2 id="faq">15. 運用でよくある質問</h2>
@@ -548,20 +548,20 @@ sudo journalctl -u amazon-ssm-agent --since "-2 hours" --no-pager</code></pre>
           <tr><th>質問</th><th>確認観点</th></tr>
         </thead>
         <tbody>
-          <tr><td>Load Averageが高いがCPUは空いている</td><td>I/O待ち、D状態プロセス、NFS/外部ストレージ待ちを確認します</td></tr>
-          <tr><td><code>df</code> と <code>du</code> の容量が合わない</td><td>削除済みファイルをプロセスが掴んでいないか <code>lsof +L1</code> で確認します</td></tr>
-          <tr><td>inodeが100%になった</td><td>小さいファイルの大量生成、メールキュー、セッション、キャッシュを確認します</td></tr>
-          <tr><td>Read-only filesystemになった</td><td>カーネルログ、EBS status checks、ファイルシステムエラーを確認します</td></tr>
-          <tr><td>Too many open filesが出る</td><td><code>LimitNOFILE</code>、プロセスのFD数、アプリ設定を確認します</td></tr>
-          <tr><td>OOM Killerが動いた</td><td>該当プロセス、メモリ推移、cgroup制限、アクセス増加を確認します</td></tr>
-          <tr><td>手動実行は成功するがsystemdでは失敗する</td><td>環境変数、実行ユーザー、WorkingDirectory、PATH、ulimitを確認します</td></tr>
-          <tr><td>localhostでは動くが外部から接続できない</td><td>待受アドレス、Security Group、NACL、LB、DNS、ルートを確認します</td></tr>
-          <tr><td>IPでは接続できるがFQDNでは失敗する</td><td>DNS、<code>/etc/hosts</code>、検索ドメイン、キャッシュを確認します</td></tr>
-          <tr><td>証明書を更新したが古い証明書が返る</td><td>ALB、Webサーバー、CloudFront、SNI、接続先IPを確認します</td></tr>
-          <tr><td>cronやsystemd timerが動かない</td><td>サービス状態、ユーザー、PATH、時刻、ログ、実行権限を確認します</td></tr>
-          <tr><td>sudoが突然失敗する</td><td><code>/etc/sudoers</code> 構文、グループ所属、LDAP/SSSD、PAMを確認します</td></tr>
-          <tr><td>SELinuxでPermission deniedになる</td><td>AVCログ、ファイルコンテキスト、boolean、ポリシーを確認します</td></tr>
-          <tr><td>cloud-init / User Dataが失敗した</td><td><code>/var/log/cloud-init.log</code>、<code>/var/log/cloud-init-output.log</code>、IMDS、パッケージリポジトリを確認します</td></tr>
+          <tr><td>Load Averageが高いがCPUは空いている</td><td>I/O待ち、D状態プロセス、NFS/外部ストレージ待ちを確認する</td></tr>
+          <tr><td><code>df</code> と <code>du</code> の容量が合わない</td><td>削除済みファイルをプロセスが掴んでいないか <code>lsof +L1</code> で確認する</td></tr>
+          <tr><td>inodeが100%になった</td><td>小さいファイルの大量生成、メールキュー、セッション、キャッシュを確認する</td></tr>
+          <tr><td>Read-only filesystemになった</td><td>カーネルログ、EBS status checks、ファイルシステムエラーを確認する</td></tr>
+          <tr><td>Too many open filesが出る</td><td><code>LimitNOFILE</code>、プロセスのFD数、アプリ設定を確認する</td></tr>
+          <tr><td>OOM Killerが動いた</td><td>該当プロセス、メモリ推移、cgroup制限、アクセス増加を確認する</td></tr>
+          <tr><td>手動実行は成功するがsystemdでは失敗する</td><td>環境変数、実行ユーザー、WorkingDirectory、PATH、ulimitを確認する</td></tr>
+          <tr><td>localhostでは動くが外部から接続できない</td><td>待受アドレス、Security Group、NACL、LB、DNS、ルートを確認する</td></tr>
+          <tr><td>IPでは接続できるがFQDNでは失敗する</td><td>DNS、<code>/etc/hosts</code>、検索ドメイン、キャッシュを確認する</td></tr>
+          <tr><td>証明書を更新したが古い証明書が返る</td><td>ALB、Webサーバー、CloudFront、SNI、接続先IPを確認する</td></tr>
+          <tr><td>cronやsystemd timerが動かない</td><td>サービス状態、ユーザー、PATH、時刻、ログ、実行権限を確認する</td></tr>
+          <tr><td>sudoが突然失敗する</td><td><code>/etc/sudoers</code> 構文、グループ所属、LDAP/SSSD、PAMを確認する</td></tr>
+          <tr><td>SELinuxでPermission deniedになる</td><td>AVCログ、ファイルコンテキスト、boolean、ポリシーを確認する</td></tr>
+          <tr><td>cloud-init / User Dataが失敗した</td><td><code>/var/log/cloud-init.log</code>、<code>/var/log/cloud-init-output.log</code>、IMDS、パッケージリポジトリを確認する</td></tr>
         </tbody>
       </table>
 

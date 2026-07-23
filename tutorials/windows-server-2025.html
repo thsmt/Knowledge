@@ -53,17 +53,17 @@
 
       <div class="callout">
         <strong>ℹ️ 前提</strong>
-        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;WINDOWS_PRIVATE_IP&gt;</code>、<code>&lt;HOSTNAME&gt;</code>、<code>&lt;ADMIN_USER&gt;</code>などは環境に合わせて置き換えます
+        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;WINDOWS_PRIVATE_IP&gt;</code>、<code>&lt;HOSTNAME&gt;</code>、<code>&lt;ADMIN_USER&gt;</code>などは環境に合わせて置き換える
       </div>
 
       <h2 id="launch">0. 起動時の確認</h2>
 
       <h3 id="launch-ami">0.1 AMIとキーペア</h3>
-      <p>AWSが提供するWindows Server 2025 AMIを選択し、秘密鍵を安全に管理できるRSAキーペアを指定します</p>
+      <p>AWSが提供するWindows Server 2025 AMIを選択し、秘密鍵を安全に管理できるRSAキーペアを指定する</p>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        Amazon EC2のWindowsインスタンスは<code>ED25519</code>キーペアに対応していません。Administratorの初期パスワードを復号できるよう、Windows Serverでは<code>RSA</code>キーペアを使用します
+        Amazon EC2のWindowsインスタンスは<code>ED25519</code>キーペアに対応していません。Administratorの初期パスワードを復号できるよう、Windows Serverでは<code>RSA</code>キーペアを使用する
       </div>
 
 
@@ -129,7 +129,7 @@
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        Fleet Managerを利用するEC2インスタンスには、SSM Agentと<code>AmazonSSMManagedInstanceCore</code>相当の権限を持つIAMインスタンスプロファイルが必要です。インスタンスへアクセスキーを保存せず、IAMロールで権限を付与します
+        Fleet Managerを利用するEC2インスタンスには、SSM Agentと<code>AmazonSSMManagedInstanceCore</code>相当の権限を持つIAMインスタンスプロファイルが必要です。インスタンスへアクセスキーを保存せず、IAMロールで権限を付与する
       </div>
 
 
@@ -146,14 +146,14 @@
       </ol>
 
       <h3 id="customer-user">2.2 利用者用ローカルユーザー</h3>
-      <p>管理者権限でPowerShellを起動し、パスワードを対話入力で受け取ります</p>
+      <p>管理者権限でPowerShellを起動し、パスワードを対話入力で受け取る</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>$Password = Read-Host "Password for &lt;CUSTOMER_USER&gt;" -AsSecureString
 New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&lt;CUSTOMER_USER&gt;"</code></pre>
       </div>
 
-      <p>業務上必要な最小権限のローカルグループへ追加します</p>
+      <p>業務上必要な最小権限のローカルグループへ追加する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Add-LocalGroupMember -Group "Users" -Member "&lt;CUSTOMER_USER&gt;"</code></pre>
@@ -161,7 +161,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <code>Administrators</code>グループへの追加とパスワード無期限化は、対象ユーザーに管理権限が必要で、社内標準で許可されている場合に限ります。Active Directoryへ参加する環境では、ローカルアカウントを増やさず、ドメインアカウントとグループポリシーによる管理を優先します
+        <code>Administrators</code>グループへの追加とパスワード無期限化は、対象ユーザーに管理権限が必要で、社内標準で許可されている場合に限ります。Active Directoryへ参加する環境では、ローカルアカウントを増やさず、ドメインアカウントとグループポリシーによる管理を優先する
       </div>
 
       <h2 id="os-settings">3. Windows OS初期設定</h2>
@@ -172,7 +172,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
         <li>「表示」から「表示」を開く</li>
         <li>「ファイル名拡張子」を有効化</li>
       </ol>
-      <p>実行ファイルや設定ファイルの種類を誤認しないよう、拡張子を常に表示します</p>
+      <p>実行ファイルや設定ファイルの種類を誤認しないよう、拡張子を常に表示する</p>
 
       <h3 id="hostname">3.2 コンピューター名設定</h3>
       <ol>
@@ -192,12 +192,12 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        2018年8月以降のAWS提供Windows AMIは、Amazon Time Sync Serviceを既定で使用します。Windows Server 2025の標準AMIでは追加のNTP設定は不要です。ドメイン参加後は、Active Directoryの時刻階層を含む設計に従います
+        2018年8月以降のAWS提供Windows AMIは、Amazon Time Sync Serviceを既定で使用します。Windows Server 2025の標準AMIでは追加のNTP設定は不要です。ドメイン参加後は、Active Directoryの時刻階層を含む設計に従う
       </div>
 
 
       <h3 id="windows-update-policy">3.4 Windows Update自動更新の無効化</h3>
-      <p>計画したメンテナンスウィンドウで更新を実施する運用に合わせ、自動更新を無効化します</p>
+      <p>計画したメンテナンスウィンドウで更新を実施する運用に合わせ、自動更新を無効化する</p>
       <ol>
         <li><kbd>Windows</kbd> + <kbd>R</kbd>を押し、<code>gpedit.msc</code>を実行</li>
         <li>「コンピューターの構成」、「管理用テンプレート」、「Windowsコンポーネント」、「Windows Update」の順に開く</li>
@@ -207,7 +207,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        自動更新を無効化する場合は、AWS Systems Manager Patch Manager、WSUS、SCCMなどで定期的に更新を適用する運用を必ず用意します。更新経路がない状態で無効化すると、既知の脆弱性が残ります
+        自動更新を無効化する場合は、AWS Systems Manager Patch Manager、WSUS、SCCMなどで定期的に更新を適用する運用を必ず用意します。更新経路がない状態で無効化すると、既知の脆弱性が残る
       </div>
 
       <h3 id="rdp-security">3.5 RDPセキュリティ設定</h3>
@@ -218,7 +218,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
         <li>「リモート」タブを開く</li>
         <li>「ネットワーク レベル認証でリモート デスクトップを実行しているコンピューターからのみ接続を許可する」を有効化</li>
       </ol>
-      <p>ネットワークレベル認証は、RDPセッションを確立する前に利用者を認証し、未認証接続によるリソース消費と攻撃対象領域を抑えます</p>
+      <p>ネットワークレベル認証は、RDPセッションを確立する前に利用者を認証し、未認証接続によるリソース消費と攻撃対象領域を抑える</p>
       <p><a href="https://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/remotepc/remote-desktop-allow-access">Microsoft公式: Remote Desktopとネットワークレベル認証</a></p>
 
       <h4 id="rdp-limit">3.5.2 RDPセッション制限</h4>
@@ -230,7 +230,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       </ol>
 
       <h4 id="rdp-encryption">3.5.3 RDP暗号化レベル</h4>
-      <p>RDPのネイティブ暗号化を利用する接続に対して、クライアントとサーバー間の暗号化レベルを<code>高</code>へ固定します</p>
+      <p>RDPのネイティブ暗号化を利用する接続に対して、クライアントとサーバー間の暗号化レベルを<code>高</code>へ固定する</p>
       <ol>
         <li><kbd>Windows</kbd> + <kbd>R</kbd>を押し、<code>gpedit.msc</code>を実行</li>
         <li>「コンピューターの構成」、「管理用テンプレート」、「Windowsコンポーネント」の順に展開</li>
@@ -242,13 +242,13 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        「高」はRDPのネイティブ暗号化へ128ビット暗号化を要求する設定です。TLSをセキュリティレイヤーとして使用する接続では、証明書とTLS設定を優先して設計します。FIPS準拠設定は互換性へ影響するため、準拠要件がある場合だけ別途検証します
+        「高」はRDPのネイティブ暗号化へ128ビット暗号化を要求する設定です。TLSをセキュリティレイヤーとして使用する接続では、証明書とTLS設定を優先して設計します。FIPS準拠設定は互換性へ影響するため、準拠要件がある場合だけ別途検証する
       </div>
 
       <p><a href="https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-remotedesktopservices">Microsoft公式: Remote Desktop Servicesポリシー</a></p>
 
       <h3 id="windows-firewall">3.6 Windows Defender Firewallの無効化</h3>
-      <p>本手順の対象環境では、通信制御をSecurity Groupなどの上位レイヤーへ集約し、OS側との二重管理による設定差分や疎通障害を避ける社内標準に基づいてWindows Defender Firewallを無効化します</p>
+      <p>本手順の対象環境では、通信制御をSecurity Groupなどの上位レイヤーへ集約し、OS側との二重管理による設定差分や疎通障害を避ける社内標準に基づいてWindows Defender Firewallを無効化する</p>
       <ol>
         <li><kbd>Windows</kbd> + <kbd>R</kbd>を押し、<code>wf.msc</code>を実行</li>
         <li>「Windows Defender ファイアウォールのプロパティ」を開く</li>
@@ -258,7 +258,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        Windows Defender Firewallの無効化は、すべての環境に適用する一般的なAWS推奨ではありません。AWSはOS側ファイアウォールを多層防御として利用することを推奨しています。本手順は、Security GroupとNetwork ACLによる通信制御、EDRによる検知・防御、変更承認が整備された対象環境に限って適用します
+        Windows Defender Firewallの無効化は、すべての環境に適用する一般的なAWS推奨ではありません。AWSはOS側ファイアウォールを多層防御として利用することを推奨しています。本手順は、Security GroupとNetwork ACLによる通信制御、EDRによる検知・防御、変更承認が整備された対象環境に限って適用する
       </div>
 
 
@@ -285,7 +285,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       <h2 id="aws-management">4. AWS管理機能の設定</h2>
 
       <h3 id="cloudwatch-agent">4.1 CloudWatch Agent導入</h3>
-      <p>AWS Systems Manager Run Commandを使用して、Amazon CloudWatch Agentをインストールします。インストールだけではメトリクスやログは収集されないため、後続手順で設定ファイルを作成して適用します</p>
+      <p>AWS Systems Manager Run Commandを使用して、Amazon CloudWatch Agentをインストールします。インストールだけではメトリクスやログは収集されないため、後続手順で設定ファイルを作成して適用する</p>
       <ol>
         <li>AWS Systems Managerコンソールで「Run Command」を開く</li>
         <li>コマンドドキュメントへ<code>AWS-ConfigureAWSPackage</code>を選択</li>
@@ -296,13 +296,13 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        EC2インスタンスのIAMロールには、Systems Manager管理用の<code>AmazonSSMManagedInstanceCore</code>と、メトリクス・ログ送信用の<code>CloudWatchAgentServerPolicy</code>相当の権限を付与します。設定ファイルにアクセスキーやシークレットアクセスキーを保存しません
+        EC2インスタンスのIAMロールには、Systems Manager管理用の<code>AmazonSSMManagedInstanceCore</code>と、メトリクス・ログ送信用の<code>CloudWatchAgentServerPolicy</code>相当の権限を付与します。設定ファイルにアクセスキーやシークレットアクセスキーを保存しない
       </div>
 
       <p><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Agent-on-EC2-Instance.html">AWS公式: CloudWatch Agentのインストール</a></p>
 
       <h3 id="cloudwatch-config">4.2 CloudWatch Agent設定ファイル作成</h3>
-      <p>収集するWindowsイベントログ、パフォーマンスカウンター、収集間隔、CloudWatch Logsのロググループ名をJSON形式の設定ファイルへ定義します</p>
+      <p>収集するWindowsイベントログ、パフォーマンスカウンター、収集間隔、CloudWatch Logsのロググループ名をJSON形式の設定ファイルへ定義する</p>
 
       <table>
         <thead><tr><th>分類</th><th>設定例</th><th>設計時の確認事項</th></tr></thead>
@@ -316,7 +316,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       </table>
 
       <h4 id="cloudwatch-config-wizard">4.2.1 Windows上のウィザードで作成</h4>
-      <p>単体サーバーで設定内容を確認しながら作成する場合は、管理者権限のPowerShellから設定ウィザードを実行します</p>
+      <p>単体サーバーで設定内容を確認しながら作成する場合は、管理者権限のPowerShellから設定ウィザードを実行する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Set-Location "$Env:ProgramFiles\Amazon\AmazonCloudWatchAgent"
@@ -330,7 +330,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
         <li>Parameter Storeで集中管理する場合は、保存確認へ<code>Yes</code>を選択し、パラメータ名とリージョンを指定</li>
       </ol>
 
-      <p>ローカルの<code>config.json</code>を使用する場合は、次のコマンドで設定を読み込み、Agentを起動します</p>
+      <p>ローカルの<code>config.json</code>を使用する場合は、次のコマンドで設定を読み込み、Agentを起動する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>&amp; "$Env:ProgramFiles\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1" `
@@ -339,7 +339,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       </div>
 
       <h4 id="cloudwatch-config-parameter-store">4.2.2 Parameter Storeへ保存</h4>
-      <p>複数台へ同じ設定を配布する場合は、承認済みのJSONファイルをAWS Systems Manager Parameter Storeへ保存します。AWS管理ポリシーの<code>CloudWatchAgentServerPolicy</code>を利用する場合は、<code>AmazonCloudWatch-WindowsServer2025</code>のように<code>AmazonCloudWatch-</code>で始まるパラメータ名を指定します</p>
+      <p>複数台へ同じ設定を配布する場合は、承認済みのJSONファイルをAWS Systems Manager Parameter Storeへ保存します。AWS管理ポリシーの<code>CloudWatchAgentServerPolicy</code>を利用する場合は、<code>AmazonCloudWatch-WindowsServer2025</code>のように<code>AmazonCloudWatch-</code>で始まるパラメータ名を指定する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>aws ssm put-parameter `
@@ -351,13 +351,13 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        Parameter Storeへ設定を登録する作業者には<code>ssm:PutParameter</code>権限が必要です。EC2インスタンスには<code>ssm:GetParameter</code>だけを許可し、設定登録権限は付与しません。<code>AmazonCloudWatch-</code>以外のパラメータ名を使う場合は、対象パラメータに限定した<code>ssm:GetParameter</code>権限をインスタンスロールへ追加します。Parameter Storeはアカウントおよびリージョン単位で管理されるため、適用先と同じリージョンへ登録します
+        Parameter Storeへ設定を登録する作業者には<code>ssm:PutParameter</code>権限が必要です。EC2インスタンスには<code>ssm:GetParameter</code>だけを許可し、設定登録権限は付与しません。<code>AmazonCloudWatch-</code>以外のパラメータ名を使う場合は、対象パラメータに限定した<code>ssm:GetParameter</code>権限をインスタンスロールへ追加します。Parameter Storeはアカウントおよびリージョン単位で管理されるため、適用先と同じリージョンへ登録する
       </div>
 
       <p><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/create-cloudwatch-agent-configuration-file-wizard.html">AWS公式: ウィザードによる設定ファイル作成</a></p>
 
       <h3 id="cloudwatch-run-command">4.3 Run Commandによる設定適用</h3>
-      <p>Parameter Storeに保存した設定を、AWS Systems Manager Run Commandから対象インスタンスへ適用します</p>
+      <p>Parameter Storeに保存した設定を、AWS Systems Manager Run Commandから対象インスタンスへ適用する</p>
       <ol>
         <li>AWS Systems Managerコンソールで「Run Command」を開く</li>
         <li>コマンドドキュメントへ<code>AmazonCloudWatch-ManageAgent</code>を選択</li>
@@ -372,12 +372,12 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        共通設定をParameter Storeで管理すると、インスタンスへJSONファイルを個別配布せずに同じ設定を再適用できます。設定変更時はJSONをレビューし、Parameter Storeを更新してから対象タグ単位でRun Commandを実行します
+        共通設定をParameter Storeで管理すると、インスタンスへJSONファイルを個別配布せずに同じ設定を再適用できます。設定変更時はJSONをレビューし、Parameter Storeを更新してから対象タグ単位でRun Commandを実行する
       </div>
 
 
       <h3 id="ec2launch-sysprep">4.4 EC2Launch v2とAMI横展開</h3>
-      <p>AWS提供のWindows Server 2025 AMIにはEC2Launch v2が含まれます。構築済みインスタンスをカスタムAMIとして横展開する場合は、EC2Launch v2からSysprepを実行してインスタンス固有情報を一般化します</p>
+      <p>AWS提供のWindows Server 2025 AMIにはEC2Launch v2が含まれます。構築済みインスタンスをカスタムAMIとして横展開する場合は、EC2Launch v2からSysprepを実行してインスタンス固有情報を一般化する</p>
       <ol>
         <li>構築作業とWindows Updateを完了</li>
         <li>一時ファイル、個別の認証情報、作業用アカウント、固定IP設定などを除去</li>
@@ -389,14 +389,14 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        Sysprepはバックアップ手段ではありません。コンピューター名やSIDなどのインスタンス固有情報を一般化するため、稼働中インスタンスの復旧用AMIを取得する目的では使用しません
+        Sysprepはバックアップ手段ではありません。コンピューター名やSIDなどのインスタンス固有情報を一般化するため、稼働中インスタンスの復旧用AMIを取得する目的では使用しない
       </div>
 
 
       <h2 id="security-options">5. 要件に応じた追加設定</h2>
 
       <h3 id="tls-policy">5.1 TLS 1.0 / 1.1の無効化</h3>
-      <p>組織の暗号化基準でTLS 1.2以上を必須とする場合は、IIS、.NET Framework、データベースクライアント、監視エージェントなどの互換性を検証してからTLS 1.0 / 1.1を無効化します</p>
+      <p>組織の暗号化基準でTLS 1.2以上を必須とする場合は、IIS、.NET Framework、データベースクライアント、監視エージェントなどの互換性を検証してからTLS 1.0 / 1.1を無効化する</p>
 
       <h4 id="tls-precheck">5.1.1 事前確認</h4>
       <ol>
@@ -407,7 +407,7 @@ New-LocalUser -Name "&lt;CUSTOMER_USER&gt;" -Password $Password -Description "&l
       </ol>
 
       <h4 id="tls-backup">5.1.2 Schannel設定のバックアップ</h4>
-      <p>管理者権限のPowerShellで、変更前のSchannel設定をエクスポートします</p>
+      <p>管理者権限のPowerShellで、変更前のSchannel設定をエクスポートする</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>New-Item -ItemType Directory -Path C:\Work\tls-backup -Force
@@ -416,7 +416,7 @@ reg export "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL" `
       </div>
 
       <h4 id="tls-disable">5.1.3 TLS 1.0 / 1.1の無効化</h4>
-      <p>TLS 1.0とTLS 1.1のClient、Serverへ<code>Enabled=0</code>と<code>DisabledByDefault=1</code>を設定します</p>
+      <p>TLS 1.0とTLS 1.1のClient、Serverへ<code>Enabled=0</code>と<code>DisabledByDefault=1</code>を設定する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>$protocols = @('TLS 1.0', 'TLS 1.1')
@@ -432,7 +432,7 @@ foreach ($protocol in $protocols) {
 }</code></pre>
       </div>
 
-      <p>設定値を確認します</p>
+      <p>設定値を確認する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols" |
@@ -451,15 +451,15 @@ foreach ($protocol in $protocols) {
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        Schannel設定はOS全体へ影響します。互換性問題が発生した場合は<code>schannel-before.reg</code>を<code>reg import</code>で復元し、再起動して切り戻します。Microsoftはレジストリの直接変更より、グループポリシーや管理された構成方式の利用を推奨しています
+        Schannel設定はOS全体へ影響します。互換性問題が発生した場合は<code>schannel-before.reg</code>を<code>reg import</code>で復元し、再起動して切り戻します。Microsoftはレジストリの直接変更より、グループポリシーや管理された構成方式の利用を推奨している
       </div>
 
 
       <h3 id="event-logs">5.2 イベントログとクラッシュダンプ</h3>
-      <p>監視要件と障害解析要件に合わせて、Windowsイベントログの最大サイズと上書き方式、ページファイル、クラッシュダンプの保存方式を設計します。ローカルログだけに依存せず、CloudWatch Logsなどの集中管理先へ転送します</p>
+      <p>監視要件と障害解析要件に合わせて、Windowsイベントログの最大サイズと上書き方式、ページファイル、クラッシュダンプの保存方式を設計します。ローカルログだけに依存せず、CloudWatch Logsなどの集中管理先へ転送する</p>
 
       <h4 id="event-log-settings">5.2.1 Windowsイベントログ</h4>
-      <p>現在の最大サイズと保持方式を確認します</p>
+      <p>現在の最大サイズと保持方式を確認する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>wevtutil gl Application
@@ -467,7 +467,7 @@ wevtutil gl System
 wevtutil gl Security</code></pre>
       </div>
 
-      <p>次の例では、各ログの最大サイズを256MBへ設定し、上限到達時は古いイベントから上書きします</p>
+      <p>次の例では、各ログの最大サイズを256MBへ設定し、上限到達時は古いイベントから上書きする</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>wevtutil sl Application /ms:268435456 /rt:false
@@ -477,7 +477,7 @@ wevtutil sl Security /ms:268435456 /rt:false</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        <code>/rt:false</code>は上限到達時に古いイベントを上書きします。<code>/rt:true</code>は既存イベントを保持し、上限到達後の新規イベントを保存しません。監査要件がある場合はログ転送と保管先を先に設計します
+        <code>/rt:false</code>は上限到達時に古いイベントを上書きします。<code>/rt:true</code>は既存イベントを保持し、上限到達後の新規イベントを保存しません。監査要件がある場合はログ転送と保管先を先に設計する
       </div>
 
 
@@ -499,7 +499,7 @@ wevtutil sl Security /ms:268435456 /rt:false</code></pre>
         <li>「既存のファイルに上書きする」を有効化</li>
       </ol>
 
-      <p>レジストリ上のダンプ方式と保存先を確認します</p>
+      <p>レジストリ上のダンプ方式と保存先を確認する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" |
@@ -518,7 +518,7 @@ wevtutil sl Security /ms:268435456 /rt:false</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        Microsoftはメモリ32GB以下では完全メモリダンプ、32GB超ではシステム管理のページファイルと自動メモリダンプを基本構成として案内しています。完全メモリダンプにはOSボリューム上へ十分なページファイル容量が必要です
+        Microsoftはメモリ32GB以下では完全メモリダンプ、32GB超ではシステム管理のページファイルと自動メモリダンプを基本構成として案内しています。完全メモリダンプにはOSボリューム上へ十分なページファイル容量が必要
       </div>
 
       <p><a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/troubleshoot-stop-errors-best-practices-dump-configuration-recommendations">Microsoft公式: クラッシュダンプ設定の推奨事項</a></p>
@@ -526,7 +526,7 @@ wevtutil sl Security /ms:268435456 /rt:false</code></pre>
       <h3 id="windows-2025-security">5.3 Windows Server 2025固有設定の確認</h3>
 
       <h4 id="credential-guard">5.3.1 Credential Guard</h4>
-      <p>Credential Guardの構成状態を確認します</p>
+      <p>Credential Guardの構成状態を確認する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Get-CimInstance -ClassName Win32_DeviceGuard `
@@ -536,20 +536,20 @@ wevtutil sl Security /ms:268435456 /rt:false</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        Credential GuardはNTLMハッシュやKerberos TGTなどの資格情報を仮想化ベースのセキュリティで分離します。認証方式やセキュリティ製品との互換性を確認し、理由なく無効化しません
+        Credential GuardはNTLMハッシュやKerberos TGTなどの資格情報を仮想化ベースのセキュリティで分離します。認証方式やセキュリティ製品との互換性を確認し、理由なく無効化しない
       </div>
 
       <p><a href="https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/">Microsoft公式: Credential Guard</a></p>
 
       <h4 id="openssh-server">5.3.2 OpenSSH Server</h4>
-      <p>インストール状態とサービス状態を確認します</p>
+      <p>インストール状態とサービス状態を確認する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Server*'
 Get-Service sshd -ErrorAction SilentlyContinue</code></pre>
       </div>
 
-      <p>SSH接続を利用する場合だけ、サービスを自動起動へ変更します</p>
+      <p>SSH接続を利用する場合だけ、サービスを自動起動へ変更する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Set-Service -Name sshd -StartupType Automatic
@@ -558,11 +558,11 @@ Start-Service sshd</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        OpenSSH Serverを使用しない場合はサービスを起動せず、Security GroupでTCP/22を許可しません。使用する場合は公開鍵認証、接続元制限、ログ収集を設計します
+        OpenSSH Serverを使用しない場合はサービスを起動せず、Security GroupでTCP/22を許可しません。使用する場合は公開鍵認証、接続元制限、ログ収集を設計する
       </div>
 
       <h4 id="smb-security">5.3.3 SMBセキュリティ</h4>
-      <p>SMBクライアントとサーバーの署名、暗号化、認証関連設定を確認します</p>
+      <p>SMBクライアントとサーバーの署名、暗号化、認証関連設定を確認する</p>
       <div class="code">
         <div class="code-header"><span>powershell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>Get-SmbClientConfiguration | Format-List
@@ -571,7 +571,7 @@ Get-SmbServerConfiguration | Format-List</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        署名必須を解除すると中間者攻撃への耐性が低下します。接続できない機器がある場合は、Windows Server側の既定値を緩和する前にNAS、ファイルサーバー、クライアント側のSMB対応状況を確認します
+        署名必須を解除すると中間者攻撃への耐性が低下します。接続できない機器がある場合は、Windows Server側の既定値を緩和する前にNAS、ファイルサーバー、クライアント側のSMB対応状況を確認する
       </div>
     </main>
 

@@ -51,34 +51,34 @@
     <main>
       <div class="breadcrumb"><a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a><span>&gt;</span><span>トピック</span></div>
       <h1>[構築] Red Hat Enterprise Linux 10</h1>
-      <p class="lead">AWS EC2上のRed Hat Enterprise Linux 10を手動構築する際の初期設定、SSH、cloud-init、追加ディスク、swap、ミドルウェア、Apache、Postfix、logrotateを整理します</p>
+      <p class="lead">AWS EC2上のRed Hat Enterprise Linux 10を手動構築する際の初期設定、SSH、cloud-init、追加ディスク、swap、ミドルウェア、Apache、Postfix、logrotateを整理する</p>
 
       <div class="callout">
         <strong>ℹ️ 前提</strong>
-        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;FQDN&gt;</code>、<code>&lt;PRIVATE_IP&gt;</code> などは環境に合わせて置き換えます
+        実環境名、IPアドレス、顧客固有値は扱わず、再利用できる手順として一般化しています。<code>&lt;HOSTNAME&gt;</code>、<code>&lt;FQDN&gt;</code>、<code>&lt;PRIVATE_IP&gt;</code> などは環境に合わせて置き換える
       </div>
 
       <div class="callout">
         <strong>ℹ️ Red Hat Enterprise Linux 10の主な変更点</strong>
-        <p>x86_64版は<code>x86-64-v3</code>命令セットを前提とするため、使用するEC2インスタンスタイプが対応していることを確認します</p>
-        <p>モジュール形式のApplication Streamは廃止されています。<code>dnf module</code>ではなく、通常のRPMパッケージとして導入します</p>
-        <p>PAYG AMIはRHUI、BYOSまたはRed Hat Gold ImageはRHSMを利用します。AMIの提供方式を確認してから<code>subscription-manager</code>の扱いを決定します</p>
+        <p>x86_64版は<code>x86-64-v3</code>命令セットを前提とするため、使用するEC2インスタンスタイプが対応していることを確認する</p>
+        <p>モジュール形式のApplication Streamは廃止されています。<code>dnf module</code>ではなく、通常のRPMパッケージとして導入する</p>
+        <p>PAYG AMIはRHUI、BYOSまたはRed Hat Gold ImageはRHSMを利用します。AMIの提供方式を確認してから<code>subscription-manager</code>の扱いを決定する</p>
         <p><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/10.0_release_notes/distribution">Red Hat Enterprise Linux 10 - Content distribution</a></p>
       </div>
 
       <h2 id="step-01">1. 起動時の確認</h2>
-      <p>Amazon EC2はLinuxインスタンスでRSAとED25519をサポートしています。この手順の対象環境では、組織の暗号鍵ポリシーでRSAキーペアを許可していないため、<code>ED25519</code>キーペアを使用します</p>
+      <p>Amazon EC2はLinuxインスタンスでRSAとED25519をサポートしています。この手順の対象環境では、組織の暗号鍵ポリシーでRSAキーペアを許可していないため、<code>ED25519</code>キーペアを使用する</p>
       <table>
         <thead><tr><th>確認項目</th><th>内容</th></tr></thead>
         <tbody>
           <tr><td>キーペア</td><td><code>ED25519</code>を使用</td></tr>
-          <tr><td>接続方式</td><td>SSH、Session Manager、踏み台経由など、作業経路を事前に確認します</td></tr>
-          <tr><td>バックアップ</td><td>設定変更前にAMI、EBS Snapshot、設定ファイルのバックアップ取得要否を確認します</td></tr>
+          <tr><td>接続方式</td><td>SSH、Session Manager、踏み台経由など、作業経路を事前に確認する</td></tr>
+          <tr><td>バックアップ</td><td>設定変更前にAMI、EBS Snapshot、設定ファイルのバックアップ取得要否を確認する</td></tr>
         </tbody>
       </table>
 
       <h2 id="step-02">2. SELinuxの設定変更</h2>
-      <p>Red Hat Enterprise Linux 10では<code>SELINUX=disabled</code>を設定ファイルへ指定する方式は使用せず、無効化が必要な場合はカーネルパラメーターで管理します。本手順では監査ログを残すため<code>permissive</code>へ変更します</p>
+      <p>Red Hat Enterprise Linux 10では<code>SELINUX=disabled</code>を設定ファイルへ指定する方式は使用せず、無効化が必要な場合はカーネルパラメーターで管理します。本手順では監査ログを残すため<code>permissive</code>へ変更する</p>
       <p class="procedure-step"><strong>1. 設定ファイルのバックアップ取得</strong></p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -118,7 +118,7 @@ cp -pi /etc/selinux/config /root/config-backup/selinux/config.bak</code></pre>
 
 
       <h2 id="step-03">3. subscription-managerの無効化</h2>
-      <p>AWS Marketplaceの従量課金（PAYG）RHEL AMIは、Red Hat Update Infrastructure（RHUI）から更新パッケージを取得し、Red Hat Subscription Management（RHSM）への登録を必要としません。この構成では<code>subscription-manager</code>プラグインを無効化します</p>
+      <p>AWS Marketplaceの従量課金（PAYG）RHEL AMIは、Red Hat Update Infrastructure（RHUI）から更新パッケージを取得し、Red Hat Subscription Management（RHSM）への登録を必要としません。この構成では<code>subscription-manager</code>プラグインを無効化する</p>
       <p class="procedure-step"><strong>1. 設定ファイルのバックアップ取得</strong></p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -141,12 +141,12 @@ enabled=0</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        <p>PAYG RHEL AMIで有効のままにすると、<code>This system is not registered with an entitlement server.</code>という未登録警告がDNF実行時に表示されます。RHUIからの更新は継続できますが、作業ログへ不要な警告が混在し、実際のリポジトリエラーを判別しづらくなります</p>
-        <p>BYOS、RHEL Gold Image、Red Hat Satellite、Red Hat CDNへ登録してサブスクリプションを管理する環境では、登録状態とリポジトリ制御に使用するため無効化しません</p>
+        <p>PAYG RHEL AMIで有効のままにすると、<code>This system is not registered with an entitlement server.</code>という未登録警告がDNF実行時に表示されます。RHUIからの更新は継続できますが、作業ログへ不要な警告が混在し、実際のリポジトリエラーを判別しづらくなる</p>
+        <p>BYOS、RHEL Gold Image、Red Hat Satellite、Red Hat CDNへ登録してサブスクリプションを管理する環境では、登録状態とリポジトリ制御に使用するため無効化しない</p>
       </div>
 
       <h2 id="step-04">4. ログインプロファイル設定</h2>
-      <p>操作履歴に時刻を残し、調査時に作業順序を追いやすくするため、<code>/etc/profile</code> と新規ユーザー用の雛形を変更します</p>
+      <p>操作履歴に時刻を残し、調査時に作業順序を追いやすくするため、<code>/etc/profile</code> と新規ユーザー用の雛形を変更する</p>
       <p class="procedure-step"><strong>1. <code>/etc/profile</code>のバックアップ取得</strong></p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -261,7 +261,7 @@ PS1="[\u@\h \W \t]\\$ "</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <code>/etc/skel/.bash_profile</code> は新規ユーザー作成時の雛形です。既に作成済みのユーザーには反映されないため、必要に応じて <code>/home</code> 配下の各ユーザーのファイルを個別に修正します
+        <code>/etc/skel/.bash_profile</code> は新規ユーザー作成時の雛形です。既に作成済みのユーザーには反映されないため、必要に応じて <code>/home</code> 配下の各ユーザーのファイルを個別に修正する
       </div>
 
       <h2 id="step-05">5. ホスト名とhosts設定</h2>
@@ -337,14 +337,14 @@ Subsystem sftp /usr/libexec/openssh/sftp-server -f LOCAL3 -l VERBOSE</code></pre
         <pre><code>systemctl restart sshd.service</code></pre>
       </div>
 
-      <p><code>PermitRootLogin prohibit-password</code> と <code>without-password</code> の扱いは <a href="https://qiita.com/ine1127/items/b50b9a8f831736cf14ea">PermitRootLoginの解説</a> も確認します</p>
+      <p><code>PermitRootLogin prohibit-password</code> と <code>without-password</code> の扱いは <a href="https://qiita.com/ine1127/items/b50b9a8f831736cf14ea">PermitRootLoginの解説</a> も確認する</p>
 
       <h2 id="step-08">8. cloud-init設定の確認・必要時変更</h2>
-      <p>cloud-initはEC2の初回起動時に、インスタンスメタデータとユーザーデータを基に、既定ユーザー、SSH鍵、ホスト名、パッケージ導入などを反映します。既定動作で要件を満たす場合は変更不要です</p>
+      <p>cloud-initはEC2の初回起動時に、インスタンスメタデータとユーザーデータを基に、既定ユーザー、SSH鍵、ホスト名、パッケージ導入などを反映します。既定動作で要件を満たす場合は変更不要</p>
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p><code>cloud.cfg</code>の変更は、以後の初回起動処理やAMIから複製したインスタンスの動作に影響します</p>
-        <p>既定ユーザー、rootログイン、SSH鍵、ユーザーデータの実行順序を要件として変更する場合だけ、変更前後の差分を確認して実施します</p>
+        <p><code>cloud.cfg</code>の変更は、以後の初回起動処理やAMIから複製したインスタンスの動作に影響する</p>
+        <p>既定ユーザー、rootログイン、SSH鍵、ユーザーデータの実行順序を要件として変更する場合だけ、変更前後の差分を確認して実施する</p>
       </div>
       <p class="procedure-step"><strong>1. 設定ファイルのバックアップ取得</strong></p>
       <div class="code">
@@ -435,7 +435,7 @@ system_info:
       </div>
 
       <h2 id="step-09">9. 追加ディスクのマウント</h2>
-      <p>EBSボリュームを追加する場合は、デバイス確認、ファイルシステム作成、マウントポイント作成、<code>/etc/fstab</code>追記まで実施します。NitroベースのEC2では、コンソール上のデバイス名とOS上のデバイス名が異なるため、必ず<code>lsblk</code>で対象を特定します</p>
+      <p>EBSボリュームを追加する場合は、デバイス確認、ファイルシステム作成、マウントポイント作成、<code>/etc/fstab</code>追記まで実施します。NitroベースのEC2では、コンソール上のデバイス名とOS上のデバイス名が異なるため、必ず<code>lsblk</code>で対象を特定する</p>
 
       <p class="procedure-step"><strong>1. 追加ディスクの確認</strong></p>
       <div class="code">
@@ -473,7 +473,7 @@ df -hT /data</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        既存のデータがあるデバイスに<code>mkfs</code>を実行するとデータを失います。<code>file -s</code>と<code>lsblk -f</code>の結果が空の新規ボリュームであることを確認してから実行します
+        既存のデータがあるデバイスに<code>mkfs</code>を実行するとデータを失います。<code>file -s</code>と<code>lsblk -f</code>の結果が空の新規ボリュームであることを確認してから実行する
       </div>
 
       <p><a href="https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/ebs-using-volumes.html">Amazon EBSボリュームの使用</a></p>
@@ -519,8 +519,8 @@ df -hT</code></pre>
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p><code>lsblk -f</code>で対象デバイス、パーティション番号、ファイルシステムを確認し、構成に一致するコマンドだけを実行します</p>
-        <p>パーティションを持たずデバイス全体へファイルシステムを作成している場合は、<code>growpart</code>を実行せず、ファイルシステムだけを拡張します</p>
+        <p><code>lsblk -f</code>で対象デバイス、パーティション番号、ファイルシステムを確認し、構成に一致するコマンドだけを実行する</p>
+        <p>パーティションを持たずデバイス全体へファイルシステムを作成している場合は、<code>growpart</code>を実行せず、ファイルシステムだけを拡張する</p>
       </div>
 
       <h2 id="step-10">10. swap領域作成</h2>
@@ -569,7 +569,7 @@ swapon /.swapfile</code></pre>
       </div>
 
       <h2 id="step-11">11. ミドルウェアの導入</h2>
-      <p>Red Hat Enterprise Linux 10ではモジュール形式のApplication Streamが廃止されています。利用可能な通常のRPMパッケージを確認し、OS標準リポジトリを優先します</p>
+      <p>Red Hat Enterprise Linux 10ではモジュール形式のApplication Streamが廃止されています。利用可能な通常のRPMパッケージを確認し、OS標準リポジトリを優先する</p>
       <p class="procedure-step"><strong>1. MariaDB、PostgreSQL、PHPの提供バージョンを確認</strong></p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
@@ -586,7 +586,7 @@ dnf info php php-fpm</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        初期リリースではMariaDB 10.11、PostgreSQL 16が提供されます。後続バージョンは別名のRPMストリームとして提供される場合があるため、導入前にパッケージ名とライフサイクルを確認します
+        初期リリースではMariaDB 10.11、PostgreSQL 16が提供されます。後続バージョンは別名のRPMストリームとして提供される場合があるため、導入前にパッケージ名とライフサイクルを確認する
       </div>
 
       <h2 id="step-12">12. Postfix設定</h2>
@@ -692,7 +692,7 @@ systemctl enable postfix.service
 systemctl is-enabled postfix.service</code></pre>
       </div>
 
-      <p class="procedure-step"><strong>9. Red Hat Enterprise Linux 10では<code>s-nail</code>に<code>mail</code>、<code>mailx</code>が含まれます</strong></p>
+      <p class="procedure-step"><strong>9. <code>s-nail</code>（<code>mail</code>、<code>mailx</code>コマンド）のインストール</strong></p>
       <div class="code">
         <div class="code-header"><span>root shell</span><button class="copy" type="button">Copy</button></div>
         <pre><code>dnf install -y s-nail</code></pre>
@@ -790,9 +790,9 @@ IncludeOptional /etc/httpd/conf.d/*.conf</code></pre>
 
       <div class="callout">
         <strong>ℹ️ 情報</strong>
-        <p>prefork MPMは接続ごとにプロセスを割り当てるため、同時接続数が増えるほどメモリ使用量が増えます</p>
-        <p>非スレッドセーフなモジュールや従来の<code>mod_php</code>構成が必要な場合を除き、Red Hat Enterprise Linux 10ではPHP-FPMと組み合わせやすいevent MPMを優先します。preforkは各プロセスが1リクエストを処理するため、同じ同時接続数ではスレッド型のevent MPMより多くのメモリを消費します</p>
-        <p>preforkが必要な場合は、<code>MaxRequestWorkers</code>と1プロセス当たりのメモリ使用量から上限を算出し、対象モジュールと負荷条件を事前に検証します</p>
+        <p>prefork MPMは接続ごとにプロセスを割り当てるため、同時接続数が増えるほどメモリ使用量が増える</p>
+        <p>非スレッドセーフなモジュールや従来の<code>mod_php</code>構成が必要な場合を除き、Red Hat Enterprise Linux 10ではPHP-FPMと組み合わせやすいevent MPMを優先します。preforkは各プロセスが1リクエストを処理するため、同じ同時接続数ではスレッド型のevent MPMより多くのメモリを消費する</p>
+        <p>preforkが必要な場合は、<code>MaxRequestWorkers</code>と1プロセス当たりのメモリ使用量から上限を算出し、対象モジュールと負荷条件を事前に検証する</p>
       </div>
 
       <p class="procedure-step"><strong>4. <code>/etc/httpd/conf.d/</code>配下の不要ファイル削除</strong></p>
@@ -923,7 +923,7 @@ systemctl is-enabled httpd.service</code></pre>
       <table>
         <thead><tr><th>パッケージ</th><th>主な用途</th></tr></thead>
         <tbody>
-          <tr><td><code>telnet</code></td><td>TCPポートの到達性確認。対話ログインには使用しません</td></tr>
+          <tr><td><code>telnet</code></td><td>TCPポートの到達性確認。対話ログインには使用しない</td></tr>
           <tr><td><code>lftp</code></td><td>FTP/SFTPによるファイル転送と接続確認</td></tr>
           <tr><td><code>plocate</code></td><td><code>locate</code>によるファイルパス検索（RHEL 10では<code>mlocate</code>から置換）</td></tr>
           <tr><td><code>libyaml</code></td><td>YAMLを扱うツールの依存ライブラリ</td></tr>
@@ -932,7 +932,7 @@ systemctl is-enabled httpd.service</code></pre>
           <tr><td><code>tcpdump</code></td><td>パケットキャプチャ</td></tr>
           <tr><td><code>tmux</code></td><td>SSH切断後も作業を継続できる端末多重化</td></tr>
           <tr><td><code>bash-completion</code></td><td>コマンドとオプションのタブ補完</td></tr>
-          <tr><td><code>net-tools</code></td><td>旧来の<code>netstat</code>・<code>ifconfig</code>。通常は<code>ss</code>・<code>ip</code>を優先します</td></tr>
+          <tr><td><code>net-tools</code></td><td>旧来の<code>netstat</code>・<code>ifconfig</code>。通常は<code>ss</code>・<code>ip</code>を優先する</td></tr>
         </tbody>
       </table>
 
@@ -965,8 +965,8 @@ include /etc/logrotate.d
 
       <div class="callout callout-warning">
         <strong>⚠️ 注意</strong>
-        <p><code>/etc/logrotate.conf</code>は<code>/etc/logrotate.d</code>を読み込みます。たとえば<code>/etc/logrotate.d/httpd</code>を同じディレクトリへ<code>httpd.bak</code>として保存すると、設定内容が二重に読み込まれることがあります</p>
-        <p>同じログに対するローテーションや<code>postrotate</code>が重複し、エラーや意図しないサービス再読み込みにつながるため、バックアップは<code>/root/config-backup/logrotate/</code>のように別ディレクトリへ保存します</p>
+        <p><code>/etc/logrotate.conf</code>は<code>/etc/logrotate.d</code>を読み込みます。たとえば<code>/etc/logrotate.d/httpd</code>を同じディレクトリへ<code>httpd.bak</code>として保存すると、設定内容が二重に読み込まれることがある</p>
+        <p>同じログに対するローテーションや<code>postrotate</code>が重複し、エラーや意図しないサービス再読み込みにつながるため、バックアップは<code>/root/config-backup/logrotate/</code>のように別ディレクトリへ保存する</p>
       </div>
 
     </main>

@@ -24,5 +24,6 @@ https://thsmt.github.io/Documentation/
 ## 執筆ルール
 
 - 表記、見出し、情報パネルのルールは [CONTRIBUTING.md](CONTRIBUTING.md) を参照
+- 文体を一括整形する場合は `powershell -File scripts/normalize-writing-style.ps1` を実行
 - 文末の句点や表記ゆれは `powershell -File scripts/check-writing-style.ps1` で確認
 - ページ内リンクは `powershell -File scripts/check-page-links.ps1` で確認

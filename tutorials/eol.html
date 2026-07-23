@@ -60,16 +60,16 @@
       <h1>EOL / ライフサイクル一覧表</h1>
 
       <p class="lead">
-        OS、AWSマネージドサービス、ミドルウェア、運用エージェントのサポート期限と主要な世代差分を整理した一覧表です
+        OS、AWSマネージドサービス、ミドルウェア、運用エージェントのサポート期限と主要な世代差分を整理した一覧表
       </p>
 
       <div class="notice notice-warning">
         <strong>⚠️ 注意</strong>
-        EOLやサポート期限は変更される可能性があるため、作業前に公式ドキュメントを確認します
+        EOLやサポート期限は変更される可能性があるため、作業前に公式ドキュメントを確認する
       </div>
 
       <h2 id="package-origin">パッケージと導入元の確認</h2>
-      <p>サポート期限を判断する前に、サーバーへ導入されているバージョンとリポジトリを確認します</p>
+      <p>サポート期限を判断する前に、サーバーへ導入されているバージョンとリポジトリを確認する</p>
 
       <h3>OSと有効なリポジトリ</h3>
       <div class="code">
@@ -96,12 +96,12 @@ rpm -q --qf '%{NAME} %{VERSION}-%{RELEASE} | Vendor: %{VENDOR} | Packager: %{PAC
       <div class="notice notice-info">
         <strong>ℹ️ 情報</strong>
         <code>dnf list --installed</code>のリポジトリ欄は<code>@rhel-9-for-x86_64-appstream-rpms</code>や<code>@remi-modular</code>のように表示されます
-        <br><code>dnf repoquery</code>を利用できない場合は<code>dnf install -y dnf-plugins-core</code>で追加します
+        <br><code>dnf repoquery</code>を利用できない場合は<code>dnf install -y dnf-plugins-core</code>で追加する
       </div>
 
       <details class="example-details">
         <summary>ミドルウェア別の実行例</summary>
-        <p>以下は表示形式の例です<br>バージョン、リリース番号、アーキテクチャ、リポジトリIDは環境によって異なります</p>
+        <p>以下は表示形式の例です<br>バージョン、リリース番号、アーキテクチャ、リポジトリIDは環境によって異なる</p>
         <div class="code">
           <div class="code-header"><span>root shell</span><button class="copy">Copy</button></div>
           <pre><code># Red Hat Application StreamsのPHP
@@ -395,7 +395,7 @@ dnf module info php:8.2</code></pre>
 
       <div class="notice notice-info">
         <strong>ℹ️ 情報</strong>
-        下表のバージョンは最小構成のOSへ自動的にインストールされるものではなく、Red Hat標準リポジトリから選択できる初期提供バージョンまたは追加ストリームです
+        下表のバージョンは最小構成のOSへ自動的にインストールされるものではなく、Red Hat標準リポジトリから選択できる初期提供バージョンまたは追加ストリーム
       </div>
 
       <table class="lifecycle-table lifecycle-table-reference">
