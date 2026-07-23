@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MariaDB on RHEL 8 / 9 | Documentation</title>
+  <meta name="description" content="Red Hat Enterprise Linux 8 / 9でMariaDBをインストール、設定、バックアップ、Galera Clusterを運用するための手順。">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../"><img src="../assets/icon.jpg" alt="Documentation icon"><span>Documentation</span></a>
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" type="button" title="テーマを切り替え" aria-label="テーマを切り替え">☀</button>
+      <nav class="nav" aria-label="Global navigation">
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <a href="https://github.com/thsmt"><span class="nav-icon" aria-hidden="true">▦</span>Repositories</a>
+        <a href="https://github.com/thsmt/Documentation"><span class="nav-icon" aria-hidden="true">◆</span>GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="site-sidebar" class="sidebar" aria-label="Page list">
+      <div class="sidebar-heading">
+        <h2>ページ一覧</h2>
+        <button class="icon-button sidebar-toggle sidebar-toggle-inline" type="button" aria-controls="site-sidebar" aria-expanded="true" title="ページ一覧を閉じる" aria-label="ページ一覧を閉じる">☰</button>
+      </div>
+      <a href="cloudformation.html">CloudFormation</a>
+      <a href="aws-cli.html">AWS CLI 特殊対応</a>
+      <a href="aws-cli-reference.html">AWS CLI コマンドリファレンス</a>
+      <a href="linux-troubleshooting.html">障害切り分けチェックリスト</a>
+      <a href="amazon-workspaces.html">Amazon WorkSpaces</a>
+      <a href="amazon-ses.html">Amazon SES</a>
+      <a href="rhel9-ops.html">[構築] Red Hat Enterprise Linux 9</a>
+      <a class="active" href="mariadb-rhel8-rhel9.html">MariaDB on RHEL 8 / 9</a>
+      <a href="rhel10-ops.html">[構築] Red Hat Enterprise Linux 10</a>
+      <a href="amazon-linux-2023.html">[構築] Amazon Linux 2023</a>
+      <a href="windows-server-2022.html">[構築] Windows Server 2022</a>
+      <a href="windows-server-2025.html">[構築] Windows Server 2025</a>
+      <a href="zabbix-ops.html">Zabbix 6.0</a>
+      <a href="eol.html">EOL / ライフサイクル一覧表</a>
+      <a href="glossary.html">用語集</a>
+      <a href="terraform.html">Terraform ※移行中</a>
+      <a href="awx-ansible.html">AWX / Ansible ※移行中</a>
+      <a href="container.html">コンテナ ※移行中</a>
+      <a href="github-actions.html">GitHub Actions ※移行中</a>
+    </aside>
+
+    <main class="content">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="../"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+        <span>トピック</span>
+      </nav>
+
+      <h1>MariaDB on RHEL 8 / 9</h1>
+      <p class="lead">Red Hat Enterprise Linux 8 / 9でMariaDBを導入し、初期設定、アプリケーション用ユーザー、バックアップ、Galera Clusterの基本運用を行う手順です。</p>
+
+      <div class="callout callout-warning">
+        <strong>⚠️ 本番適用前の確認</strong>
+        <p>MariaDBとMySQLのRPMパッケージは同一ホストへ並行導入できません。既存DB、利用中のモジュールストリーム、バックアップと復元手順を確認してから作業します。Galeraのブートストラップは、全停止からの復旧時に選定した1ノードだけで実行します。</p>
+      </div>
+
+      <h2 id="overview">対象と基本方針</h2>
+      <table>
+        <thead><tr><th>項目</th><th>内容</th></tr></thead>
+        <tbody>
+          <tr><td>対象OS</td><td>Red Hat Enterprise Linux 8 / 9</td></tr>
+          <tr><td>サービス</td><td><code>mariadb.service</code></td></tr>
+          <tr><td>設定ファイル</td><td><code>/etc/my.cnf</code> と <code>/etc/my.cnf.d/*.cnf</code></td></tr>
+          <tr><td>データディレクトリ</td><td>標準では <code>/var/lib/mysql</code></td></tr>
+          <tr><td>アプリケーション用ユーザー例</td><td><code>t_hashimoto</code>。rootアカウントをアプリケーションから使用しません</td></tr>
+        </tbody>
+      </table>
+      <p>RHEL 8ではMariaDBをモジュールストリームとして導入します。RHEL 9では標準の<code>mariadb-server</code>に加え、OSのマイナーバージョンによって追加ストリームを選択できます。導入前に利用可能なストリームを必ず確認します。</p>
+
+      <h2 id="install">インストールと初期設定</h2>
+      <p class="procedure-step"><strong>1. OS、既存パッケージ、利用可能なストリームを確認します</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>cat /etc/redhat-release
+rpm -qa | grep -Ei '^(mariadb|mysql)'
+dnf module list mariadb</code></pre></div>
+
+      <p class="procedure-step"><strong>2. MariaDB Serverを導入します</strong></p>
+      <p>RHEL 8では、確認したストリーム名を指定します。RHEL 9で標準ストリームを使用する場合は<code>mariadb-server</code>を導入します。既存環境では、運用中のストリームを切り替えず、サポート期限とアプリケーション互換性を確認します。</p>
+      <div class="code"><div class="code-header"><span>RHEL 8</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf module install mariadb:&lt;STREAM&gt;/server</code></pre></div>
+      <div class="code"><div class="code-header"><span>RHEL 9 standard stream</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf install mariadb-server</code></pre></div>
+
+      <p class="procedure-step"><strong>3. サービスを有効化して状態を確認します</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo systemctl enable --now mariadb.service
+sudo systemctl status mariadb.service --no-pager
+mariadb --version
+sudo ss -lntp | grep ':3306'</code></pre></div>
+
+      <p class="procedure-step"><strong>4. 初期セキュリティ設定を確認します</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo mariadb-secure-installation
+sudo mariadb</code></pre></div>
+      <div class="callout">
+        <strong>ℹ️ root認証</strong>
+        <p>MariaDB 10.4以降では、Unix socket認証が標準となる構成があります。rootのパスワードを機械的に設定するのではなく、<code>sudo mariadb</code>でのローカル管理可否と、匿名ユーザー・リモートrootログインの設定を確認します。</p>
+      </div>
+
+      <h2 id="configuration">基本設定とネットワーク</h2>
+      <p>個別設定は既存ファイルを直接書き換えるのではなく、用途が分かる追加ファイルへ保存します。外部接続が不要なDBは、ローカル待受を維持します。</p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo cp -p /etc/my.cnf.d/mariadb-server.cnf \
+  /etc/my.cnf.d/mariadb-server.cnf.bak.$(date +%Y%m%d)
+sudo vi /etc/my.cnf.d/99-local.cnf</code></pre></div>
+      <div class="code"><div class="code-header"><span>/etc/my.cnf.d/99-local.cnf</span><button class="copy" type="button">Copy</button></div><pre><code>[mariadb]
+bind-address = 127.0.0.1
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci</code></pre></div>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo systemctl restart mariadb.service
+sudo journalctl -u mariadb.service -b --no-pager
+sudo mariadb -e "SHOW VARIABLES WHERE Variable_name IN ('bind_address','character_set_server','collation_server');"</code></pre></div>
+      <p>アプリケーションサーバーから接続する場合だけ、<code>bind-address</code>を対象インターフェースのIPアドレスへ変更します。ファイアウォールは接続元CIDRを限定し、TCP 3306を全公開しません。</p>
+      <div class="code"><div class="code-header"><span>firewalld</span><button class="copy" type="button">Copy</button></div><pre><code>sudo firewall-cmd --permanent \
+  --add-rich-rule='rule family="ipv4" source address="&lt;APP_SERVER_CIDR&gt;" port protocol="tcp" port="3306" accept'
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-rich-rules</code></pre></div>
+
+      <h2 id="users">データベースとユーザー管理</h2>
+      <p>rootではなく、用途と接続元を限定したアカウントを作成します。以下ではアプリケーション用ユーザー名を<code>t_hashimoto</code>とします。パスワードはコマンド履歴に残さず、シークレット管理サービスまたは保護した設定ファイルから渡します。</p>
+      <div class="code"><div class="code-header"><span>SQL</span><button class="copy" type="button">Copy</button></div><pre><code>CREATE DATABASE appdb
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 't_hashimoto'@'localhost'
+  IDENTIFIED BY '&lt;STRONG_PASSWORD&gt;';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+  ON appdb.* TO 't_hashimoto'@'localhost';
+
+SHOW GRANTS FOR 't_hashimoto'@'localhost';</code></pre></div>
+      <div class="code"><div class="code-header"><span>connection test</span><button class="copy" type="button">Copy</button></div><pre><code>mariadb -u t_hashimoto -p -D appdb \
+  -e 'SELECT CURRENT_USER(), DATABASE();'</code></pre></div>
+      <p>別ホストから接続する場合は<code>'t_hashimoto'@'&lt;APP_SERVER_IP&gt;'</code>のように接続元を固定します。<code>'%'</code>による任意の接続元許可は使用しません。権限変更後の<code>FLUSH PRIVILEGES</code>は、<code>CREATE USER</code>や<code>GRANT</code>で管理した場合は不要です。</p>
+
+      <h2 id="backup">バックアップと復元</h2>
+      <table>
+        <thead><tr><th>方式</th><th>用途</th><th>重要な確認</th></tr></thead>
+        <tbody>
+          <tr><td>論理バックアップ</td><td><code>mariadb-dump</code>でSQLファイルを取得。単一DBの退避や検証環境への復元に向きます</td><td>DBデータだけではユーザーやサーバー設定を復元できません。必要に応じて<code>mysql</code>データベース、<code>/etc/my.cnf*</code>も別途保管します</td></tr>
+          <tr><td>物理オンラインバックアップ</td><td><code>mariadb-backup</code>で稼働中のInnoDB、Aria、MyISAMを退避します</td><td>復元前に<code>--prepare</code>が必要です。バックアップツールとサーバーのバージョン整合性を確認します</td></tr>
+          <tr><td>停止中のファイルコピー</td><td>保守時間を確保できる小規模環境の完全退避に使用します</td><td>サービス停止、データと設定の同時取得、同一アーキテクチャと互換バージョンでの復元が前提です</td></tr>
+        </tbody>
+      </table>
+
+      <p class="procedure-step"><strong>論理バックアップと復元確認</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo install -d -m 0700 /var/backups/mariadb
+sudo mariadb-dump --single-transaction --routines --events --triggers \
+  --databases appdb \
+  &gt; /var/backups/mariadb/appdb-$(date +%F).sql
+
+sudo mariadb &lt; /var/backups/mariadb/appdb-$(date +%F).sql
+mariadb -u t_hashimoto -p -D appdb -e 'SHOW TABLES;'</code></pre></div>
+      <p><code>--single-transaction</code>はInnoDBの論理バックアップでテーブルロックを抑えるための代表的な指定です。MyISAMなど非トランザクションテーブルを含む場合は、一貫性の取り方と業務影響を別途設計します。</p>
+
+      <p class="procedure-step"><strong>物理オンラインバックアップ</strong></p>
+      <p>本番では、アプリケーション用の<code>t_hashimoto</code>とは分離したバックアップ専用アカウントを使用します。</p>
+      <div class="code"><div class="code-header"><span>SQL</span><button class="copy" type="button">Copy</button></div><pre><code>CREATE USER 'mariadb_backup'@'localhost'
+  IDENTIFIED BY '&lt;STRONG_PASSWORD&gt;';
+GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT
+  ON *.* TO 'mariadb_backup'@'localhost';</code></pre></div>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf install mariadb-backup
+sudo install -d -m 0700 /var/backups/mariadb/full
+sudo mariadb-backup --backup \
+  --target-dir=/var/backups/mariadb/full \
+  --user=mariadb_backup --password
+sudo mariadb-backup --prepare \
+  --target-dir=/var/backups/mariadb/full</code></pre></div>
+      <div class="callout callout-warning">
+        <strong>⚠️ 復元は別環境で先に試験します</strong>
+        <p>物理復元ではMariaDBを停止し、空のデータディレクトリへ<code>--copy-back</code>または<code>--move-back</code>を実行します。復元後は所有者を<code>mysql:mysql</code>へ戻し、SELinuxコンテキストも確認します。本番データディレクトリを直接上書きする前に、隔離環境で復元とアプリケーション接続を検証します。</p>
+      </div>
+
+      <h2 id="galera">MariaDB Galera Cluster</h2>
+      <p>Galeraは複数ノードへ同期レプリケーションを行い、各ノードを読み書き可能にする構成です。レプリケーションはバックアップの代替ではありません。誤更新や論理削除も同期されるため、復元可能なバックアップを別に保持します。</p>
+      <p class="procedure-step"><strong>1. 各ノードへGaleraパッケージを導入します</strong></p>
+      <div class="code"><div class="code-header"><span>shell</span><button class="copy" type="button">Copy</button></div><pre><code>sudo dnf install mariadb-server-galera</code></pre></div>
+      <p class="procedure-step"><strong>2. 各ノードの<code>/etc/my.cnf.d/galera.cnf</code>を設定します</strong></p>
+      <div class="code"><div class="code-header"><span>conf</span><button class="copy" type="button">Copy</button></div><pre><code>[galera]
+wsrep_on=ON
+wsrep_provider=/usr/lib64/galera/libgalera_smm.so
+wsrep_cluster_name="mariadb_cluster"
+wsrep_cluster_address="gcomm://&lt;NODE1_PRIVATE_IP&gt;,&lt;NODE2_PRIVATE_IP&gt;,&lt;NODE3_PRIVATE_IP&gt;"
+wsrep_node_name="&lt;NODE_NAME&gt;"
+wsrep_node_address="&lt;NODE_PRIVATE_IP&gt;"
+binlog_format=ROW
+default_storage_engine=InnoDB
+innodb_autoinc_lock_mode=2
+wsrep_sst_method=rsync</code></pre></div>
+      <p>全ノード間でTCP 3306、TCP/UDP 4567、TCP 4568、TCP 4444を必要な範囲だけ許可します。ノードアドレス、SST方式、TLS、ロードバランサー、クォーラム喪失時の手順は構成設計として確定させます。</p>
+
+      <p class="procedure-step"><strong>3. 初回ノードをブートストラップし、他ノードを参加させます</strong></p>
+      <div class="code"><div class="code-header"><span>first node only</span><button class="copy" type="button">Copy</button></div><pre><code>sudo galera_new_cluster</code></pre></div>
+      <div class="code"><div class="code-header"><span>other nodes</span><button class="copy" type="button">Copy</button></div><pre><code>sudo systemctl start mariadb.service</code></pre></div>
+      <div class="code"><div class="code-header"><span>verification</span><button class="copy" type="button">Copy</button></div><pre><code>sudo mariadb -e "SHOW STATUS WHERE Variable_name IN (
+  'wsrep_cluster_size',
+  'wsrep_cluster_status',
+  'wsrep_ready',
+  'wsrep_local_state_comment'
+);"</code></pre></div>
+      <p>正常時は<code>wsrep_cluster_status</code>が<code>Primary</code>、<code>wsrep_ready</code>が<code>ON</code>、<code>wsrep_local_state_comment</code>が<code>Synced</code>であることを確認します。<code>wsrep_cluster_size</code>は参加済みノード数と一致する必要があります。</p>
+
+      <h2 id="operations">日常確認と障害時の初動</h2>
+      <table>
+        <thead><tr><th>観点</th><th>確認コマンド・確認内容</th></tr></thead>
+        <tbody>
+          <tr><td>サービス</td><td><code>systemctl status mariadb --no-pager</code>、<code>journalctl -u mariadb -b</code></td></tr>
+          <tr><td>待受と接続</td><td><code>ss -lntp | grep ':3306'</code>、アプリケーション用ユーザー<code>t_hashimoto</code>での接続試験</td></tr>
+          <tr><td>容量</td><td><code>df -hT /var/lib/mysql</code>、<code>df -ih /var/lib/mysql</code>、バックアップ保存先の空き容量</td></tr>
+          <tr><td>ログ</td><td><code>/var/log/mariadb/mariadb.log</code>の有無と、systemd journalのエラーを確認</td></tr>
+          <tr><td>Galera</td><td><code>wsrep_cluster_size</code>、<code>wsrep_ready</code>、<code>wsrep_local_state_comment</code>を全ノードで確認</td></tr>
+          <tr><td>復元性</td><td>定期的に隔離環境へ復元し、テーブル数、件数、アプリケーション接続を確認</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="references">公式情報</h2>
+      <ul>
+        <li><a href="https://docs.redhat.com/ja/documentation/red_hat_enterprise_linux/9/html/configuring_and_using_database_servers/using-mariadb_configuring-and-using-database-servers">RHEL 9: MariaDB の使用</a></li>
+        <li><a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/deploying_different_types_of_servers/using-mariadb">RHEL 8: Using MariaDB</a></li>
+        <li><a href="https://mariadb.com/docs/server/clients-and-utilities/deployment-tools/mariadb-secure-installation">mariadb-secure-installation</a></li>
+        <li><a href="https://mariadb.com/docs/server/server-usage/backup-and-restore/mariadb-backup/mariadb-backup-overview">mariadb-backup Overview</a></li>
+        <li><a href="https://mariadb.com/docs/galera-cluster/galera-cluster-quickstart-guides/mariadb-galera-cluster-usage-guide">MariaDB Galera Cluster Usage Guide</a></li>
+      </ul>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <h2>ページ内</h2>
+      <a class="active" href="#overview">対象と基本方針</a>
+      <a href="#install">インストール</a>
+      <a href="#configuration">基本設定</a>
+      <a href="#users">ユーザー管理</a>
+      <a href="#backup">バックアップ</a>
+      <a href="#galera">Galera Cluster</a>
+      <a href="#operations">日常確認</a>
+      <a href="#references">公式情報</a>
+    </aside>
+  </div>
+  <script src="../assets/app.js"></script>
+</body>
+</html>
